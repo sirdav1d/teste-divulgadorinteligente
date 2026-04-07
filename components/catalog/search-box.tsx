@@ -8,23 +8,25 @@ export default function SearchBox({
   onValueChange,
 }: SearchBoxProps) {
   return (
-    <section className="grid gap-4 lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)] lg:items-center">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.26em] text-foreground-muted">
-          Busca local
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground">
-          Buscar na vitrine
-        </h2>
-        <p className="mt-2 text-sm leading-7 text-foreground-muted">
-          Refine a selecao atual sem perder o ritmo da descoberta.
-        </p>
-      </div>
-
-      <label className="rounded-[1.5rem] border border-border-soft bg-surface px-4 py-4 shadow-[var(--shadow-soft)]">
+    <section className="mx-auto w-full max-w-6xl">
+      <label className="flex min-h-16 items-center rounded-[1.75rem] border border-border-soft bg-surface px-5 py-4 shadow-[var(--shadow-soft)] sm:px-6">
         <span className="sr-only">Buscar produtos da vitrine</span>
+        <svg
+          aria-hidden="true"
+          data-slot="search-icon"
+          viewBox="0 0 24 24"
+          className="mr-3 h-5 w-5 shrink-0 text-foreground-muted"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
         <input
-          className="w-full bg-transparent text-base text-foreground outline-none placeholder:text-foreground-muted"
+          className="w-full flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-foreground-muted sm:text-lg"
           name="search"
           placeholder="Busque por produto, categoria ou ocasiao"
           type="search"

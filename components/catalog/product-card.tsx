@@ -75,7 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 ? `Cupom ${product.couponCode}`
                 : "Oferta sem cupom destacado"}
             </span>
-            <span className="rounded-full border border-border-soft bg-surface-muted px-4 py-2 text-sm font-medium text-foreground">
+            <span className="rounded-full border border-brand-primary-strong bg-brand-primary-strong px-4 py-2 text-sm font-semibold text-surface shadow-[var(--shadow-soft)]">
               Ver oferta
             </span>
           </div>

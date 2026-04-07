@@ -38,5 +38,7 @@ describe("ProductGrid", () => {
     );
 
     expect(html).toContain("Ver mais");
+    expect(html).toContain("bg-brand-primary-strong");
+    expect(html).toContain("text-surface");
   });
 });

@@ -57,19 +57,19 @@ export default function StorefrontClient({
       <div className="relative mx-auto flex w-full max-w-[92rem] flex-col gap-6 lg:gap-8">
         <StorefrontHeader selectedCoupon={selectedCoupon} />
 
-        <section
+        <div
           id="catalogo"
-          className="rounded-[2rem] border border-border-soft bg-surface-glass px-5 py-5 shadow-[var(--shadow-soft)] backdrop-blur-md sm:px-6"
+          className="flex flex-col items-center gap-5 px-1 pt-1 sm:gap-6"
         >
           <SearchBox value={searchQuery} onValueChange={handleSearchChange} />
-          <div className="mt-4">
+          <div className="w-full max-w-6xl">
             <CategoryFilter
               options={availableCategories}
               selectedValue={selectedCategory}
               onValueChange={handleCategoryChange}
             />
           </div>
-        </section>
+        </div>
 
         <section className="space-y-6 xl:space-y-8">
           {filteredProducts.length > 0 ? (

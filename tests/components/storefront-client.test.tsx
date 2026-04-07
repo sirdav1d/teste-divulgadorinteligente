@@ -103,7 +103,11 @@ describe("StorefrontClient", () => {
     expect(view.container.textContent).toContain(
       "Ofertas em movimento, com acabamento premium.",
     );
-    expect(view.container.textContent).toContain("Buscar na vitrine");
+    expect(view.container.textContent).not.toContain("Busca local");
+    expect(view.container.textContent).not.toContain("Buscar na vitrine");
+    expect(view.container.textContent).not.toContain(
+      "Refine a selecao atual sem perder o ritmo da descoberta.",
+    );
     expect(view.container.textContent).not.toContain("Categorias do momento");
     expect(view.container.textContent).not.toContain("Navegacao");
     expect(view.container.textContent).not.toContain("Catalog for calm review");
@@ -118,6 +122,8 @@ describe("StorefrontClient", () => {
     );
     expect(view.container.textContent).toContain("Ver mais");
     expect(view.container.textContent).not.toContain("Produto 13");
+    expect(view.container.innerHTML).not.toContain("bg-surface-glass");
+    expect(view.container.innerHTML).not.toContain("backdrop-blur-md");
 
     view.cleanup();
   });

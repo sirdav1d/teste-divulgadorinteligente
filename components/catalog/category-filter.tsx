@@ -12,8 +12,8 @@ export default function CategoryFilter({
   onValueChange,
 }: CategoryFilterProps) {
   return (
-    <section aria-label="Categorias do catalogo">
-      <div className="flex flex-wrap justify-center gap-3">
+    <section aria-label="Categorias do catalogo" className="w-full">
+      <div className="flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
         {options.map((option) => {
           const isSelected = option.value === selectedValue;
 
@@ -23,8 +23,8 @@ export default function CategoryFilter({
               type="button"
               className={
                 isSelected
-                  ? "inline-flex items-center gap-2 rounded-full border border-brand-primary bg-brand-primary px-4 py-2.5 text-sm font-medium text-text-on-brand shadow-[var(--shadow-soft)]"
-                  : "inline-flex items-center gap-2 rounded-full border border-border-soft bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition hover:border-state-hover hover:text-brand-primary"
+                  ? "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full border border-brand-primary-strong bg-brand-primary-strong px-5 py-2.5 text-sm font-semibold text-surface shadow-[var(--shadow-soft)]"
+                  : "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full border border-border-strong bg-surface px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-brand-primary-strong hover:bg-surface-elevated hover:text-brand-primary-strong"
               }
               onClick={() => onValueChange(option.value)}
             >
@@ -32,8 +32,8 @@ export default function CategoryFilter({
               <span
                 className={
                   isSelected
-                    ? "rounded-full bg-surface-on-brand-subtle px-2 py-0.5 text-[11px] text-text-on-brand"
-                    : "rounded-full bg-brand-accent-soft px-2 py-0.5 text-[11px] text-foreground-muted"
+                    ? "rounded-full bg-surface px-2.5 py-0.5 text-[11px] font-semibold text-brand-primary-strong"
+                    : "rounded-full bg-surface-muted px-2.5 py-0.5 text-[11px] font-medium text-foreground"
                 }
               >
                 {option.count}
