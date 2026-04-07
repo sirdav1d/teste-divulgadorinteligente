@@ -92,14 +92,17 @@ afterEach(() => {
 });
 
 describe("StorefrontClient", () => {
-  it("renders hero, search, categories, then products", () => {
+  it("renders the premium hero, functional search, and category rail", () => {
     const view = renderStorefront();
 
-    expect(view.container.textContent).toContain("Catalog for calm review");
-    expect(view.container.textContent).toContain("Buscar no catalogo");
+    expect(view.container.textContent).toContain(
+      "Ofertas em movimento, com acabamento premium.",
+    );
+    expect(view.container.textContent).toContain("Buscar na vitrine");
+    expect(view.container.textContent).toContain("Categorias do momento");
+    expect(view.container.textContent).toContain("Selecao aberta");
+    expect(view.container.textContent).not.toContain("Catalog for calm review");
     expect(view.container.textContent).toContain("Todos");
-    expect(view.container.textContent).toContain("Kitchen");
-    expect(view.container.textContent).toContain("Office");
     expect(view.container.textContent).toContain("Outros");
     expect(view.container.textContent).toContain("Panela Eletrica Electrolux");
     expect(view.container.textContent).toContain(
