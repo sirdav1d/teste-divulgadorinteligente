@@ -9,9 +9,9 @@ describe("route states", () => {
   it("renders the loading copy", () => {
     const html = renderToStaticMarkup(<Loading />);
 
-    expect(html).toContain("Preparing the catalog");
+    expect(html).toContain("Preparando a vitrine");
     expect(html).toContain(
-      "Gathering products and coupons for the current issue.",
+      "Reunindo produtos, categorias e atmosfera para a selecao atual.",
     );
   });
 
@@ -23,8 +23,8 @@ describe("route states", () => {
       />,
     );
 
-    expect(html).toContain("Unable to open this issue");
-    expect(html).toContain("Reload segment");
+    expect(html).toContain("Nao foi possivel abrir esta vitrine");
+    expect(html).toContain("Recarregar trecho");
   });
 
   it("renders the global error copy", () => {
@@ -35,7 +35,7 @@ describe("route states", () => {
       />,
     );
 
-    expect(html).toContain("The application lost its track");
-    expect(html).toContain("Try to recover");
+    expect(html).toContain("A experiencia saiu do ar");
+    expect(html).toContain("Tentar recuperar");
   });
 });

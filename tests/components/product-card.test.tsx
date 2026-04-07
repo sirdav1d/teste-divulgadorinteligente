@@ -35,10 +35,17 @@ describe("ProductCard", () => {
     expect(html).toContain("R$ 199,90");
   });
 
-  it("renders the subdued record action label", () => {
-    const html = renderToStaticMarkup(<ProductCard product={baseProduct} />);
+  it("keeps the product card image-led and removes noisy badges", () => {
+    const html = renderToStaticMarkup(
+      <ProductCard
+        product={{ ...baseProduct, highlight: true, freeShipping: true }}
+      />,
+    );
 
-    expect(html).toContain("Open item record");
+    expect(html).toContain("Ver oferta");
+    expect(html).not.toContain("Record 1");
+    expect(html).not.toContain("Destaque");
+    expect(html).not.toContain("Frete gratis");
   });
 
   it("renders the fallback copy when the image is missing", () => {
@@ -46,7 +53,7 @@ describe("ProductCard", () => {
       <ProductCard product={{ ...baseProduct, imageUrl: null }} />,
     );
 
-    expect(html).toContain("Image unavailable");
+    expect(html).toContain("Imagem indisponivel");
   });
 
   it("labels uncategorized products as Outros", () => {
