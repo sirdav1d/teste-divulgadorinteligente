@@ -1,44 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ecefe7;
-  --foreground: #202623;
-  --surface: rgba(249, 250, 244, 0.88);
-  --surface-strong: #dfe5d8;
-  --border: rgba(52, 64, 58, 0.14);
-  --border-strong: rgba(52, 64, 58, 0.22);
-  --muted-foreground: rgba(32, 38, 35, 0.68);
-  --accent: #8a715e;
-  --accent-soft: rgba(138, 113, 94, 0.13);
-  --sage-soft: rgba(118, 135, 123, 0.15);
-  --shadow-quiet: 0 28px 80px rgba(54, 61, 56, 0.085);
+  --background: #f7f5ef;
+  --surface: #fcfbf8;
+  --surface-muted: #f0ede5;
+  --surface-glass: rgba(252, 251, 248, 0.72);
+  --foreground: #10203f;
+  --foreground-muted: rgba(16, 32, 63, 0.68);
+  --brand-primary: #234fb6;
+  --brand-primary-strong: #173b92;
+  --brand-accent: #8b63d9;
+  --brand-accent-soft: rgba(139, 99, 217, 0.12);
+  --border-soft: rgba(16, 32, 63, 0.1);
+  --border-strong: rgba(16, 32, 63, 0.18);
+  --hero-overlay: rgba(20, 52, 133, 0.48);
+  --hero-tint: rgba(255, 255, 255, 0.2);
+  --state-active: var(--brand-primary);
+  --state-hover: var(--brand-accent);
+  --shadow-soft: 0 18px 60px rgba(16, 32, 63, 0.08);
+  --shadow-float: 0 28px 100px rgba(16, 32, 63, 0.14);
+  --page-grid:
+    linear-gradient(rgba(16, 32, 63, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 32, 63, 0.03) 1px, transparent 1px);
+  --page-aura:
+    radial-gradient(circle at top left, rgba(35, 79, 182, 0.12), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(139, 99, 217, 0.1), transparent 26%);
+  --page-wash: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0));
+  --hero-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03));
+  --hero-lights:
+    radial-gradient(circle at top left, var(--hero-tint), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(139, 99, 217, 0.18), transparent 32%);
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-surface: var(--surface);
-  --color-surface-strong: var(--surface-strong);
-  --color-border: var(--border);
-  --font-sans: var(--font-geist-sans);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-glass: var(--surface-glass);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-strong: var(--brand-primary-strong);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-soft: var(--brand-accent-soft);
+  --color-border-soft: var(--border-soft);
+  --color-border-strong: var(--border-strong);
+  --color-hero-overlay: var(--hero-overlay);
+  --color-hero-tint: var(--hero-tint);
+  --color-state-active: var(--state-active);
+  --color-state-hover: var(--state-hover);
+  --font-sans: var(--font-brand-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-fraunces);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #161b19;
-    --foreground: #edf1ea;
-    --surface: rgba(25, 31, 28, 0.92);
-    --surface-strong: #222b27;
-    --border: rgba(231, 238, 228, 0.11);
-    --border-strong: rgba(231, 238, 228, 0.18);
-    --muted-foreground: rgba(237, 241, 234, 0.7);
-    --accent: #b99a7c;
-    --accent-soft: rgba(185, 154, 124, 0.12);
-    --sage-soft: rgba(152, 176, 162, 0.1);
-    --shadow-quiet: 0 28px 80px rgba(0, 0, 0, 0.28);
-  }
 }
 
 * {
@@ -50,17 +62,12 @@ html {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100svh;
   margin: 0;
   color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-brand-sans), sans-serif;
   background-color: var(--background);
-  background-image:
-    linear-gradient(rgba(52, 64, 58, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(52, 64, 58, 0.025) 1px, transparent 1px),
-    radial-gradient(circle at top left, rgba(138, 113, 94, 0.14), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(118, 135, 123, 0.18), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  background-image: var(--page-grid), var(--page-aura), var(--page-wash);
   background-size: 100% 36px, 36px 100%, auto, auto, auto;
   background-attachment: fixed;
   line-height: 1.5;
@@ -79,6 +86,14 @@ select {
 }
 
 ::selection {
-  background: var(--accent-soft);
+  background: var(--brand-accent-soft);
   color: var(--foreground);
+}
+
+.storefront-hero-sheen {
+  background-image: var(--hero-sheen);
+}
+
+.storefront-hero-lights {
+  background-image: var(--hero-lights);
 }

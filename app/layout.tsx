@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const brandSans = Plus_Jakarta_Sans({
+  variable: "--font-brand-sans",
   subsets: ["latin"],
 });
 
@@ -12,15 +13,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "Divulgador Inteligente",
   description:
-    "Catálogo de produtos, cupons e carrinho local para o teste técnico da Divulgador Inteligente.",
+    "Vitrine premium de produtos, cupons e descoberta visual para o teste técnico da Divulgador Inteligente.",
 };
 
 export default function RootLayout({
@@ -31,9 +27,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${brandSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
+      <body className="min-h-full bg-background text-foreground">
         {children}
       </body>
     </html>
