@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { getCategoryLabel } from "@/lib/storefront/category-filters";
 import type { Product } from "@/lib/types/divulgador";
 
 type ProductCardProps = {
@@ -17,24 +18,16 @@ function getSellerLabel(seller: string) {
   return SELLER_LABELS[seller] ?? seller;
 }
 
-function getCategoryLabel(category: string | null) {
-  if (!category) {
-    return "Curadoria geral";
-  }
-
-  return category.replace(/[-_]+/g, " ");
-}
-
 export default function ProductCard({ product }: ProductCardProps) {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-quiet)] transition duration-300 hover:-translate-y-0.5 hover:border-[var(--border-strong)]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[2.2rem] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-quiet)] transition duration-300 hover:-translate-y-0.5 hover:border-[var(--border-strong)]">
       <a
         className="flex h-full flex-col"
         href={product.link}
         target="_blank"
         rel="noreferrer"
       >
-        <div className="relative min-h-72 overflow-hidden border-b border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(255,255,255,0.18))]">
+        <div className="relative min-h-72 overflow-hidden border-b border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.52),rgba(255,255,255,0.16))]">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(52,64,58,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(52,64,58,0.03)_1px,transparent_1px)] bg-[size:100%_28px,28px_100%]" />
 
           <div className="absolute left-5 top-5 right-5 z-10 flex items-start justify-between gap-4">
@@ -95,7 +88,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </p>
           )}
 
-          <h2 className="mt-4 font-display text-[1.85rem] leading-tight text-[var(--foreground)] sm:text-[2rem]">
+          <h2 className="mt-4 font-display text-[1.75rem] leading-tight text-[var(--foreground)] sm:text-[1.95rem]">
             {product.title}
           </h2>
 

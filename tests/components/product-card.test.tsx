@@ -48,4 +48,12 @@ describe("ProductCard", () => {
 
     expect(html).toContain("Image unavailable");
   });
+
+  it("labels uncategorized products as Outros", () => {
+    const html = renderToStaticMarkup(
+      <ProductCard product={{ ...baseProduct, category: null }} />,
+    );
+
+    expect(html).toContain("Outros");
+  });
 });

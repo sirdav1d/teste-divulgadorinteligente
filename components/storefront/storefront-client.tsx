@@ -2,12 +2,17 @@
 
 import { useDeferredValue, useState } from "react";
 
+import {
+  ALL_CATEGORY_VALUE,
+  buildCategoryOptions,
+  filterProducts,
+} from "@/lib/storefront/category-filters";
 import type { Product } from "@/lib/types/divulgador";
 
+import CategoryFilter from "../catalog/category-filter";
 import ProductGrid from "../catalog/product-grid";
 import SearchBox from "../catalog/search-box";
 import EmptyState from "../shared/empty-state";
-import StatusBanner from "../shared/status-banner";
 import StorefrontHeader from "./storefront-header";
 
 type StorefrontClientProps = {
@@ -16,23 +21,20 @@ type StorefrontClientProps = {
   selectedCoupon: string | null;
 };
 
-function normalizeText(value: string) {
-  return value.trim().toLocaleLowerCase("pt-BR");
-}
-
 export default function StorefrontClient({
   products,
   couponCount,
   selectedCoupon,
 }: StorefrontClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORY_VALUE);
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const normalizedQuery = normalizeText(deferredSearchQuery);
-  const visibleProducts = normalizedQuery
-    ? products.filter((product) =>
-        normalizeText(product.title).includes(normalizedQuery),
-      )
-    : products;
+  const availableCategories = buildCategoryOptions(products);
+  const visibleProducts = filterProducts({
+    products,
+    searchQuery: deferredSearchQuery,
+    selectedCategory,
+  });
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-5 sm:px-6 lg:px-8 xl:px-10">
@@ -47,29 +49,24 @@ export default function StorefrontClient({
           selectedCoupon={selectedCoupon}
         />
 
-        <div className="grid gap-6 xl:grid-cols-[19rem_minmax(0,1fr)] xl:gap-8 xl:items-start">
-          <aside className="xl:sticky xl:top-6">
-            <SearchBox value={searchQuery} onValueChange={setSearchQuery} />
-          </aside>
+        <SearchBox value={searchQuery} onValueChange={setSearchQuery} />
 
-          <section className="space-y-6 xl:space-y-8">
-            <StatusBanner
-              totalProducts={products.length}
-              visibleProducts={visibleProducts.length}
-              couponCount={couponCount}
-              selectedCoupon={selectedCoupon}
+        <CategoryFilter
+          options={availableCategories}
+          selectedValue={selectedCategory}
+          onValueChange={setSelectedCategory}
+        />
+
+        <section className="space-y-6 xl:space-y-8">
+          {visibleProducts.length > 0 ? (
+            <ProductGrid products={visibleProducts} />
+          ) : (
+            <EmptyState
+              title="Nenhuma oferta combina com a busca atual."
+              description="Tente outro termo, troque a categoria ativa ou volte ao estado inicial para revisar a amostra completa."
             />
-
-            {visibleProducts.length > 0 ? (
-              <ProductGrid products={visibleProducts} />
-            ) : (
-              <EmptyState
-                title="Nenhuma oferta combina com a busca atual."
-                description="Tente outro termo, remova parte da busca ou volte ao estado inicial para revisar a amostra completa."
-              />
-            )}
-          </section>
-        </div>
+          )}
+        </section>
       </div>
     </main>
   );

@@ -44,6 +44,21 @@ const products: Product[] = [
     freeShipping: false,
     category: null,
   },
+  {
+    id: "3",
+    title: "Mouse Vertical Sem Fio Ergonomico Office Preto",
+    imageUrl: "https://m.media-amazon.com/images/I/61mouse.jpg",
+    priceLabel: "R$\u00a0129,90",
+    priceValue: 129.9,
+    priceFromLabel: null,
+    link: "https://example.com/mouse",
+    seller: "amazon",
+    couponCode: null,
+    installment: null,
+    highlight: true,
+    freeShipping: true,
+    category: "office",
+  },
 ];
 
 function renderStorefront() {
@@ -77,15 +92,21 @@ afterEach(() => {
 });
 
 describe("StorefrontClient", () => {
-  it("renders the initial product collection", () => {
+  it("renders hero, search, categories, then products", () => {
     const view = renderStorefront();
 
     expect(view.container.textContent).toContain("Catalog for calm review");
-    expect(view.container.textContent).toContain("Local filter");
-    expect(view.container.textContent).toContain("Current reading");
+    expect(view.container.textContent).toContain("Buscar no catalogo");
+    expect(view.container.textContent).toContain("Todos");
+    expect(view.container.textContent).toContain("Kitchen");
+    expect(view.container.textContent).toContain("Office");
+    expect(view.container.textContent).toContain("Outros");
     expect(view.container.textContent).toContain("Panela Eletrica Electrolux");
     expect(view.container.textContent).toContain(
       "Kit 2 Macaquinho Curto Fitness Poli Academia",
+    );
+    expect(view.container.textContent).toContain(
+      "Mouse Vertical Sem Fio Ergonomico Office Preto",
     );
 
     view.cleanup();
@@ -125,6 +146,33 @@ describe("StorefrontClient", () => {
 
     expect(view.container.textContent).toContain(
       "Nenhuma oferta combina com a busca atual.",
+    );
+
+    view.cleanup();
+  });
+
+  it("combines category and search filters", () => {
+    const view = renderStorefront();
+    const othersButton = [...view.container.querySelectorAll("button")].find(
+      (button) => button.textContent?.includes("Outros"),
+    );
+    const input = view.container.querySelector("input[name='search']");
+
+    expect(othersButton).not.toBeUndefined();
+    expect(input).not.toBeNull();
+
+    act(() => {
+      othersButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      Object.assign(input!, { value: "Kit" });
+      input!.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    expect(view.container.textContent).toContain(
+      "Kit 2 Macaquinho Curto Fitness Poli Academia",
+    );
+    expect(view.container.textContent).not.toContain("Panela Eletrica Electrolux");
+    expect(view.container.textContent).not.toContain(
+      "Mouse Vertical Sem Fio Ergonomico Office Preto",
     );
 
     view.cleanup();
