@@ -12,24 +12,36 @@ vi.mock("next/image", () => ({
   ),
 }));
 
+function createProduct(index: number, overrides: Partial<Product> = {}): Product {
+  return {
+    id: `${index}`,
+    title: `Produto ${index}`,
+    imageUrl: "https://example.com/product.jpg",
+    priceLabel: "R$\u00a0199,90",
+    priceValue: 199.9,
+    priceFromLabel: null,
+    link: `https://example.com/products/${index}`,
+    seller: "amazon",
+    couponCode: null,
+    installment: null,
+    highlight: false,
+    freeShipping: false,
+    category: index % 2 === 0 ? "beauty" : "electronics",
+    ...overrides,
+  };
+}
+
 const products: Product[] = [
-  {
-    id: "1",
+  createProduct(1, {
     title: "Panela Eletrica Electrolux vapor arroz capacidade 1,8L 10 xicaras",
     imageUrl: "https://m.media-amazon.com/images/I/515wvq9UoKL._SS500__QL100_.jpg",
     priceLabel: "R$\u00a0269,82",
     priceValue: 269.82,
-    priceFromLabel: null,
-    link: "https://amzn.to/4bUfKQm",
-    seller: "amazon",
     couponCode: "SEUCUPOM",
     installment: "ou 6x de R$\u00a045,00",
-    highlight: false,
-    freeShipping: false,
     category: "kitchen",
-  },
-  {
-    id: "2",
+  }),
+  createProduct(2, {
     title: "Kit 2 Macaquinho Curto Fitness Poli Academia",
     imageUrl:
       "https://http2.mlstatic.com/D_Q_NP_2X_837065-MLB90029944053_082025-V-kit-2-macaquinho-curto-fitness-poli-academia.jpeg",
@@ -40,25 +52,19 @@ const products: Product[] = [
     seller: "mercadolivre",
     couponCode: "AGORAVAI",
     installment: "ou 3x de R$\u00a026,91",
-    highlight: false,
-    freeShipping: false,
     category: null,
-  },
-  {
-    id: "3",
+  }),
+  createProduct(3, {
     title: "Mouse Vertical Sem Fio Ergonomico Office Preto",
     imageUrl: "https://m.media-amazon.com/images/I/61mouse.jpg",
     priceLabel: "R$\u00a0129,90",
     priceValue: 129.9,
-    priceFromLabel: null,
     link: "https://example.com/mouse",
-    seller: "amazon",
-    couponCode: null,
-    installment: null,
     highlight: true,
     freeShipping: true,
     category: "office",
-  },
+  }),
+  ...Array.from({ length: 12 }, (_, index) => createProduct(index + 4)),
 ];
 
 function renderStorefront() {
@@ -98,8 +104,8 @@ describe("StorefrontClient", () => {
       "Ofertas em movimento, com acabamento premium.",
     );
     expect(view.container.textContent).toContain("Buscar na vitrine");
-    expect(view.container.textContent).toContain("Categorias do momento");
-    expect(view.container.textContent).toContain("Selecao aberta");
+    expect(view.container.textContent).not.toContain("Categorias do momento");
+    expect(view.container.textContent).not.toContain("Navegacao");
     expect(view.container.textContent).not.toContain("Catalog for calm review");
     expect(view.container.textContent).toContain("Todos");
     expect(view.container.textContent).toContain("Outros");
@@ -110,6 +116,8 @@ describe("StorefrontClient", () => {
     expect(view.container.textContent).toContain(
       "Mouse Vertical Sem Fio Ergonomico Office Preto",
     );
+    expect(view.container.textContent).toContain("Ver mais");
+    expect(view.container.textContent).not.toContain("Produto 13");
 
     view.cleanup();
   });
@@ -175,6 +183,37 @@ describe("StorefrontClient", () => {
     expect(view.container.textContent).not.toContain("Panela Eletrica Electrolux");
     expect(view.container.textContent).not.toContain(
       "Mouse Vertical Sem Fio Ergonomico Office Preto",
+    );
+
+    view.cleanup();
+  });
+
+  it("reveals 12 more products at a time and resets when filters change", () => {
+    const view = renderStorefront();
+    const loadMoreButton = [...view.container.querySelectorAll("button")].find(
+      (button) => button.textContent?.includes("Ver mais"),
+    );
+    const othersButton = [...view.container.querySelectorAll("button")].find(
+      (button) => button.textContent?.includes("Outros"),
+    );
+
+    expect(loadMoreButton).not.toBeUndefined();
+    expect(othersButton).not.toBeUndefined();
+    expect(view.container.textContent).not.toContain("Produto 13");
+
+    act(() => {
+      loadMoreButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(view.container.textContent).toContain("Produto 13");
+
+    act(() => {
+      othersButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(view.container.textContent).not.toContain("Produto 13");
+    expect(view.container.textContent).toContain(
+      "Kit 2 Macaquinho Curto Fitness Poli Academia",
     );
 
     view.cleanup();
