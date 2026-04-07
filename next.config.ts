@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "static.netshoes.com.br",
+      },
+      {
+        protocol: "https",
+        hostname: "production.na01.natura.com",
+        pathname: "/dw/image/**",
+      },
+      {
+        protocol: "https",
         hostname: "divulgadorinteligente.com",
         pathname: "/cdn-cgi/imagedelivery/**",
       },

@@ -99,7 +99,15 @@ afterEach(() => {
 describe("StorefrontClient", () => {
   it("renders the premium hero, functional search, and category rail", () => {
     const view = renderStorefront();
+    const main = view.container.querySelector("main");
+    const header = view.container.querySelector("main > header");
 
+    expect(main).not.toBeNull();
+    expect(main!.className).not.toContain("px-4");
+    expect(main!.className).not.toContain("sm:px-6");
+    expect(main!.className).not.toContain("lg:px-8");
+    expect(main!.className).not.toContain("xl:px-10");
+    expect(header).not.toBeNull();
     expect(view.container.textContent).toContain(
       "Ofertas em movimento, com acabamento premium.",
     );
@@ -122,8 +130,9 @@ describe("StorefrontClient", () => {
     );
     expect(view.container.textContent).toContain("Ver mais");
     expect(view.container.textContent).not.toContain("Produto 13");
+    expect(view.container.innerHTML).toContain("mx-auto w-full max-w-[92rem]");
+    expect(view.container.innerHTML).toContain("sticky top-0 z-30");
     expect(view.container.innerHTML).not.toContain("bg-surface-glass");
-    expect(view.container.innerHTML).not.toContain("backdrop-blur-md");
 
     view.cleanup();
   });

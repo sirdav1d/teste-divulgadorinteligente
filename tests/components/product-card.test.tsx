@@ -33,6 +33,7 @@ describe("ProductCard", () => {
 
     expect(html).toContain("Amazon");
     expect(html).toContain("R$ 199,90");
+    expect(html).not.toContain("Oferta sem cupom destacado");
   });
 
   it("keeps the product card image-led and removes noisy badges", () => {

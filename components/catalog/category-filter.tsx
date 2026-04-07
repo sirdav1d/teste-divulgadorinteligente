@@ -1,7 +1,7 @@
 import type { CategoryOption } from "@/lib/storefront/category-filters";
 
 type CategoryFilterProps = {
-  options: CategoryOption[];
+  options: readonly CategoryOption[];
   selectedValue: string;
   onValueChange: (value: string) => void;
 };
@@ -19,11 +19,12 @@ export default function CategoryFilter({
 
           return (
             <button
+              aria-pressed={isSelected}
               key={option.value}
               type="button"
               className={
                 isSelected
-                  ? "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full border border-brand-primary-strong bg-brand-primary-strong px-5 py-2.5 text-sm font-semibold text-surface shadow-[var(--shadow-soft)]"
+                  ? "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full border border-brand-primary-strong bg-brand-primary-strong px-5 py-2.5 text-sm font-semibold text-surface shadow-(--shadow-soft)"
                   : "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full border border-border-strong bg-surface px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-brand-primary-strong hover:bg-surface-elevated hover:text-brand-primary-strong"
               }
               onClick={() => onValueChange(option.value)}

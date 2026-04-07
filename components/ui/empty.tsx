@@ -11,7 +11,7 @@ function Empty({ className, ...props }: EmptyProps) {
     <section
       data-slot="empty"
       className={cn(
-        "flex w-full flex-col items-center justify-center rounded-[2rem] border border-border-strong bg-surface px-6 py-12 text-center shadow-[var(--shadow-soft)] sm:px-10",
+        "flex w-full flex-col items-center justify-center rounded-[2rem] border border-border-strong bg-surface px-6 py-12 text-center shadow-(--shadow-soft) sm:px-10",
         className,
       )}
       {...props}
@@ -46,7 +46,7 @@ function EmptyMedia({
       className={cn(
         "mb-5 flex items-center justify-center",
         variant === "icon" &&
-          "h-14 w-14 rounded-full border border-border-soft bg-surface-muted text-brand-primary-strong shadow-[var(--shadow-soft)]",
+          "h-14 w-14 rounded-full border border-border-soft bg-surface-muted text-brand-primary-strong shadow-(--shadow-soft)",
         className,
       )}
       {...props}

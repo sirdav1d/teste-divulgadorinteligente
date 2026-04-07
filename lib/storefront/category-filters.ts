@@ -34,7 +34,9 @@ export function getCategoryLabel(category: string | null) {
   return formatCategoryLabel(normalizedCategory);
 }
 
-export function buildCategoryOptions(products: Product[]): CategoryOption[] {
+export function buildCategoryOptions(
+  products: readonly Product[],
+): CategoryOption[] {
   const counts = new Map<string, number>();
   let otherCount = 0;
 
@@ -49,8 +51,8 @@ export function buildCategoryOptions(products: Product[]): CategoryOption[] {
     counts.set(category, (counts.get(category) ?? 0) + 1);
   }
 
-  const options = [...counts.entries()]
-    .sort(([left], [right]) => left.localeCompare(right, "pt-BR"))
+  const options = Array.from(counts.entries())
+    .toSorted(([left], [right]) => left.localeCompare(right, "pt-BR"))
     .map(([value, count]) => ({
       value,
       label: formatCategoryLabel(value),
@@ -77,7 +79,7 @@ export function buildCategoryOptions(products: Product[]): CategoryOption[] {
 }
 
 type FilterProductsOptions = {
-  products: Product[];
+  products: readonly Product[];
   searchQuery: string;
   selectedCategory: string;
 };

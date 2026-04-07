@@ -15,11 +15,11 @@ export default function GlobalErrorPage({
 
   return (
     <html lang="pt-BR">
-      <body className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-background px-6 py-10 text-foreground">
+      <body className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-6 py-10 text-foreground">
         <div className="pointer-events-none absolute left-10 top-10 h-40 w-40 rounded-full bg-brand-accent-soft blur-3xl" />
         <div className="pointer-events-none absolute bottom-12 right-12 h-36 w-36 rounded-full bg-brand-accent-soft blur-3xl" />
 
-        <main className="relative w-full max-w-2xl rounded-[2rem] border border-border-soft bg-surface-glass px-8 py-10 shadow-[var(--shadow-float)] backdrop-blur-md">
+        <main className="relative w-full max-w-2xl rounded-[2rem] border border-border-soft bg-surface-glass px-8 py-10 shadow-(--shadow-float) backdrop-blur-md">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-foreground-muted">
             Recuperacao global
           </p>

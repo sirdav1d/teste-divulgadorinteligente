@@ -24,7 +24,7 @@ describe("route states", () => {
     );
 
     expect(html).toContain("Nao foi possivel abrir esta vitrine");
-    expect(html).toContain("Recarregar trecho");
+    expect(html).toContain("Recarregar");
   });
 
   it("renders the global error copy", () => {

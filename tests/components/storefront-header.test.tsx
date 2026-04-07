@@ -11,6 +11,12 @@ describe("StorefrontHeader", () => {
     expect(html).toContain("<video");
     expect(html).toContain("/brand/divulgador-inteligente-logo.svg");
     expect(html).toContain("/videos/storefront-hero.mp4");
+    expect(html).not.toContain("rounded-[2.75rem]");
+    expect(html).toContain("min-h-svh");
+    expect(html).toContain("mx-auto w-full max-w-[92rem]");
+    expect(html).not.toContain("bg-hero-overlay");
+    expect(html).not.toContain("storefront-hero-sheen");
+    expect(html).not.toContain("storefront-hero-lights");
     expect(html).not.toContain("Explorar vitrine");
     expect(html).not.toContain("Open catalog");
     expect(html).not.toContain("Public coupons");

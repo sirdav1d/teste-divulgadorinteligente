@@ -20,9 +20,6 @@ export default function StorefrontHeroMedia({
       >
         <source src={videoSrc} type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-hero-overlay" />
-      <div className="storefront-hero-sheen absolute inset-0" />
-      <div className="storefront-hero-lights absolute inset-0" />
     </div>
   );
 }
