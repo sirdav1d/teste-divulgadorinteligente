@@ -10,7 +10,7 @@ export default function StorefrontHeroMedia({
   return (
     <div className="absolute inset-0 overflow-hidden">
       <video
-        className="h-full w-full object-cover"
+        className="h-full w-full scale-105 object-cover object-center"
         autoPlay
         loop
         muted
