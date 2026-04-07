@@ -70,7 +70,6 @@ function renderStorefront() {
     root.render(
       <StorefrontClient
         products={products}
-        couponCount={12}
         selectedCoupon={null}
       />,
     );

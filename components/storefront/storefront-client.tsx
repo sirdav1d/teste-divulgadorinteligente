@@ -17,13 +17,11 @@ import StorefrontHeader from "./storefront-header";
 
 type StorefrontClientProps = {
   products: Product[];
-  couponCount: number;
   selectedCoupon: string | null;
 };
 
 export default function StorefrontClient({
   products,
-  couponCount,
   selectedCoupon,
 }: StorefrontClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,25 +35,26 @@ export default function StorefrontClient({
   });
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-4 py-5 sm:px-6 lg:px-8 xl:px-10">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--border-strong),transparent)]" />
-      <div className="pointer-events-none absolute left-0 top-20 h-56 w-56 rounded-full bg-[var(--accent-soft)] blur-3xl" />
-      <div className="pointer-events-none absolute bottom-10 right-0 h-52 w-52 rounded-full bg-[var(--sage-soft)] blur-3xl" />
+    <main className="relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 lg:px-8 xl:px-10">
+      <div className="pointer-events-none absolute left-0 top-20 h-56 w-56 rounded-full bg-brand-accent-soft blur-3xl" />
+      <div className="pointer-events-none absolute bottom-10 right-0 h-64 w-64 rounded-full bg-brand-accent-soft blur-3xl" />
 
-      <div className="relative mx-auto flex w-full max-w-[92rem] flex-col gap-8 lg:gap-10">
-        <StorefrontHeader
-          totalProducts={products.length}
-          couponCount={couponCount}
-          selectedCoupon={selectedCoupon}
-        />
+      <div className="relative mx-auto flex w-full max-w-[92rem] flex-col gap-6 lg:gap-8">
+        <StorefrontHeader selectedCoupon={selectedCoupon} />
 
-        <SearchBox value={searchQuery} onValueChange={setSearchQuery} />
-
-        <CategoryFilter
-          options={availableCategories}
-          selectedValue={selectedCategory}
-          onValueChange={setSelectedCategory}
-        />
+        <section
+          id="catalogo"
+          className="rounded-[2rem] border border-border-soft bg-surface-glass px-5 py-5 shadow-[var(--shadow-soft)] backdrop-blur-md sm:px-6"
+        >
+          <SearchBox value={searchQuery} onValueChange={setSearchQuery} />
+          <div className="mt-4">
+            <CategoryFilter
+              options={availableCategories}
+              selectedValue={selectedCategory}
+              onValueChange={setSelectedCategory}
+            />
+          </div>
+        </section>
 
         <section className="space-y-6 xl:space-y-8">
           {visibleProducts.length > 0 ? (
