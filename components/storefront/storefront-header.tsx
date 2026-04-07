@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import StorefrontHeroMedia from "./storefront-hero-media";
 
 type StorefrontHeaderProps = {
@@ -16,9 +18,17 @@ export default function StorefrontHeader({
 
       <div className="relative flex min-h-[100svh] flex-col justify-between px-6 py-6 sm:px-8 lg:px-12 lg:py-10">
         <div className="flex items-center justify-between gap-4">
-          <span className="text-sm font-semibold uppercase tracking-[0.22em] text-white/92">
-            Divulgador Inteligente
-          </span>
+          <div className="inline-flex items-center rounded-full border border-white/24 bg-white/88 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur-xl">
+            <Image
+              src="/brand/divulgador-inteligente-logo.svg"
+              alt="Divulgador Inteligente"
+              width={176}
+              height={64}
+              unoptimized
+              priority
+              className="h-7 w-auto sm:h-8"
+            />
+          </div>
           <a
             href="#catalogo"
             className="rounded-full border border-white/24 bg-white/10 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/14"
