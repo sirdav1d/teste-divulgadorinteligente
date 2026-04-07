@@ -19,9 +19,6 @@
   --state-hover: var(--brand-accent);
   --shadow-soft: 0 18px 60px rgba(16, 32, 63, 0.08);
   --shadow-float: 0 28px 100px rgba(16, 32, 63, 0.14);
-  --page-grid:
-    linear-gradient(rgba(16, 32, 63, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16, 32, 63, 0.03) 1px, transparent 1px);
   --page-aura:
     radial-gradient(circle at top left, rgba(35, 79, 182, 0.12), transparent 24%),
     radial-gradient(circle at bottom right, rgba(139, 99, 217, 0.1), transparent 26%);
@@ -67,8 +64,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-brand-sans), sans-serif;
   background-color: var(--background);
-  background-image: var(--page-grid), var(--page-aura), var(--page-wash);
-  background-size: 100% 36px, 36px 100%, auto, auto, auto;
+  background-image: var(--page-aura), var(--page-wash);
+  background-size: auto, auto;
   background-attachment: fixed;
   line-height: 1.5;
 }

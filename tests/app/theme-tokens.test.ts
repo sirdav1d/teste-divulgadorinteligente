@@ -13,4 +13,11 @@ describe("theme tokens", () => {
     expect(css).toContain("--color-state-active:");
     expect(css).toContain("--shadow-float:");
   });
+
+  it("uses an atmospheric page background without the grid overlay", () => {
+    const css = readFileSync(resolve("app/globals.css"), "utf8");
+
+    expect(css).not.toContain("--page-grid:");
+    expect(css).toContain("background-image: var(--page-aura), var(--page-wash);");
+  });
 });
