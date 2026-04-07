@@ -5,10 +5,7 @@ import StorefrontHeader from "../../components/storefront/storefront-header";
 
 describe("StorefrontHeader", () => {
   it("renders a lifestyle video hero without the old stat cards", () => {
-    const html = renderToStaticMarkup(
-      // @ts-ignore testing the approved next contract before implementation
-      <StorefrontHeader selectedCoupon={null} />,
-    );
+    const html = renderToStaticMarkup(<StorefrontHeader selectedCoupon={null} />);
 
     expect(html).toContain("Ofertas em movimento");
     expect(html).toContain("Explorar vitrine");
