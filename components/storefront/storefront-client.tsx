@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 
 import {
   ALL_CATEGORY_VALUE,
@@ -20,19 +20,28 @@ type StorefrontClientProps = {
   selectedCoupon: string | null;
 };
 
+const PAGE_SIZE = 12;
+
 export default function StorefrontClient({
   products,
   selectedCoupon,
 }: StorefrontClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORY_VALUE);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const availableCategories = buildCategoryOptions(products);
-  const visibleProducts = filterProducts({
+  const filteredProducts = filterProducts({
     products,
     searchQuery: deferredSearchQuery,
     selectedCategory,
   });
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const hasMoreProducts = filteredProducts.length > visibleCount;
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [deferredSearchQuery, selectedCategory]);
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 lg:px-8 xl:px-10">
@@ -57,8 +66,16 @@ export default function StorefrontClient({
         </section>
 
         <section className="space-y-6 xl:space-y-8">
-          {visibleProducts.length > 0 ? (
-            <ProductGrid products={visibleProducts} />
+          {filteredProducts.length > 0 ? (
+            <ProductGrid
+              products={visibleProducts}
+              totalCount={filteredProducts.length}
+              onLoadMore={
+                hasMoreProducts
+                  ? () => setVisibleCount((count) => count + PAGE_SIZE)
+                  : undefined
+              }
+            />
           ) : (
             <EmptyState
               title="Nenhuma oferta combina com a busca atual."
