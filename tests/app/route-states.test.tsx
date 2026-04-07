@@ -11,7 +11,7 @@ describe("route states", () => {
 
     expect(html).toContain("Preparando a vitrine");
     expect(html).toContain(
-      "Reunindo produtos, categorias e atmosfera para a selecao atual.",
+      "Reunindo produtos, categorias e atmosfera para a seleção atual.",
     );
   });
 
@@ -23,7 +23,7 @@ describe("route states", () => {
       />,
     );
 
-    expect(html).toContain("Nao foi possivel abrir esta vitrine");
+    expect(html).toContain("Não foi possível abrir esta vitrine");
     expect(html).toContain("Recarregar");
   });
 
@@ -35,7 +35,7 @@ describe("route states", () => {
       />,
     );
 
-    expect(html).toContain("A experiencia saiu do ar");
+    expect(html).toContain("A experiência saiu do ar");
     expect(html).toContain("Tentar recuperar");
   });
 });

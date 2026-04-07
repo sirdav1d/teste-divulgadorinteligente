@@ -1,14 +1,13 @@
 /** @format */
-
-import Image from 'next/image';
+/* eslint-disable @next/next/no-img-element */
 
 const usefulLinks = [
 	{
-		label: 'Termos de Servico',
+		label: 'Termos de Serviço',
 		href: 'https://www.divulgadorinteligente.com/termos-de-uso-e-servico',
 	},
 	{
-		label: 'Politica de Privacidade',
+		label: 'Política de Privacidade',
 		href: 'https://www.divulgadorinteligente.com/politica-de-privacidade',
 	},
 ];
@@ -89,24 +88,24 @@ export default function StorefrontFooter() {
 				<div className='absolute left-1/2 top-0 h-32 w-[140%] -translate-x-1/2 -translate-y-1/2 rounded-[100%] bg-background' />
 			</div>
 
-			<div className='relative mx-auto w-full max-w-[92rem] px-4 pb-8 pt-20 sm:px-6 lg:px-8 xl:px-10'>
-				<div className='grid gap-10 lg:grid-cols-[1.2fr_0.9fr_0.8fr_1fr] lg:gap-12'>
+			<div className='relative mx-auto w-full max-w-368 px-4 pb-8 pt-20 sm:px-6 lg:px-8 xl:px-10'>
+				<div className='grid gap-10 lg:grid-cols-[1.2fr_0.9fr_0.8fr_1fr] lg:gap-14'>
 					<div className='space-y-6'>
-						<Image
+						<img
 							src='/brand/divulgador-inteligente-logo.svg'
 							alt='Divulgador Inteligente'
-							width={180}
-							height={64}
-							unoptimized
-							sizes='180px'
-							className='h-10 w-auto'
+							width={198}
+							height={70}
+							decoding='async'
+							loading='lazy'
+							className='h-11 w-auto'
 						/>
 
 						<p className='max-w-sm text-sm leading-7 text-text-on-hero-muted'>
 							Divulgador Inteligente: A ferramenta ideal para divulgar links de
 							afiliados da Amazon, Magalu, LTK, Awin, Mercado Livre, Natura e
-							Shopee de forma pratica e profissional. Experimente agora com o
-							plano gratis!
+							Shopee de forma prática e profissional. <br />
+							Experimente agora com o plano grátis!
 						</p>
 
 						<div className='flex flex-wrap gap-3'>
@@ -133,26 +132,30 @@ export default function StorefrontFooter() {
 								href='https://api.whatsapp.com/send?phone=+5511986608692&text=Ol%C3%A1+gostaria+de+saber+mais+como+o+Divulgador+Inteligente+pode+me+ajudar+a+divulgar+mais+promo%C3%A7%C3%B5es+e+vender+mais.'
 								target='_blank'
 								rel='noopener noreferrer'
-								className='flex items-start gap-3 transition hover:text-white'>
-								<span className='mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold uppercase tracking-[0.12em]'>
-									Tel
+								className='flex min-w-0 items-center gap-3 transition hover:text-white'>
+								<span className='mt-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white/10 px-2 text-[10px] font-semibold uppercase tracking-[0.12em]'>
+									Tel.
 								</span>
-								<span>(11) 98660-8692</span>
+								<span className='min-w-0 wrap-break-word  max-md:text-sm'>
+									(11) 98660-8692
+								</span>
 							</a>
 							<a
 								href='mailto:suporte@divulgadorinteligente.com'
-								className='flex items-start gap-3 transition hover:text-white'>
-								<span className='mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold uppercase tracking-[0.08em]'>
-									Mail
+								className='flex min-w-0 items-center gap-3 transition hover:text-white'>
+								<span className='mt-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full  px-2 text-[10px] bg-white/10 text-nowrap font-semibold uppercase tracking-[0.08em]'>
+									E-mail
 								</span>
-								<span>suporte@divulgadorinteligente.com</span>
+								<span className='min-w-0 text-nowrap max-md:text-sm'>
+									suporte@divulgadorinteligente.com
+								</span>
 							</a>
 						</div>
 					</div>
 
 					<div className='space-y-5'>
 						<h2 className='text-xl font-semibold tracking-[-0.03em] text-white'>
-							Links uteis
+							Links úteis
 						</h2>
 						<nav className='space-y-3 text-base leading-8 text-text-on-hero-muted'>
 							{usefulLinks.map((link) => (
@@ -171,13 +174,13 @@ export default function StorefrontFooter() {
 					<div className='space-y-5'>
 						<div className='relative rounded-[1.75rem] bg-white px-6 py-6 text-foreground shadow-(--shadow-soft)'>
 							<p className='text-sm leading-7'>
-								@divulgadorintel E o meu segredo para divulgar bastante e ainda
-								ter tempo para produzir conteudo.
+								@divulgadorintel É o meu segredo para divulgar bastante e ainda
+								ter tempo para produzir conteúdo.
 							</p>
 							<div className='absolute bottom-0 left-10 h-5 w-5 translate-y-1/2 rotate-45 bg-white' />
 						</div>
 						<p className='text-base leading-8 text-text-on-hero-muted'>
-							A Maga das Promos - Jan, 2023
+							A Maga das Promos - jan. de 2023
 						</p>
 					</div>
 				</div>

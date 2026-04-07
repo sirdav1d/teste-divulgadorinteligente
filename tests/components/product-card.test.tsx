@@ -1,15 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import ProductCard from "../../components/catalog/product-card";
 import type { Product } from "../../lib/types/divulgador";
-
-vi.mock("next/image", () => ({
-  default: ({ alt, src }: { alt: string; src: string }) => (
-    <img alt={alt} src={src} />
-  ),
-}));
 
 const baseProduct: Product = {
   id: "1",
@@ -36,19 +29,27 @@ describe("ProductCard", () => {
     expect(html).not.toContain("Oferta sem cupom destacado");
   });
 
-  it("keeps the product card image-led and removes noisy badges", () => {
+  it("uses the cart CTA instead of the external offer link CTA", () => {
     const html = renderToStaticMarkup(
       <ProductCard
         product={{ ...baseProduct, highlight: true, freeShipping: true }}
       />,
     );
 
-    expect(html).toContain("Ver oferta");
+    expect(html).toContain("Adicionar ao carrinho");
+    expect(html).not.toContain("Ver oferta");
     expect(html).toContain("bg-brand-primary-strong");
     expect(html).toContain("text-surface");
     expect(html).not.toContain("Record 1");
     expect(html).not.toContain("Destaque");
-    expect(html).not.toContain("Frete gratis");
+    expect(html).not.toContain("Frete grátis");
+  });
+
+  it("removes the external anchor behavior from the card", () => {
+    const html = renderToStaticMarkup(<ProductCard product={baseProduct} />);
+
+    expect(html).not.toContain(`href="${baseProduct.link}"`);
+    expect(html).not.toContain('target="_blank"');
   });
 
   it("renders the fallback copy when the image is missing", () => {
@@ -56,7 +57,7 @@ describe("ProductCard", () => {
       <ProductCard product={{ ...baseProduct, imageUrl: null }} />,
     );
 
-    expect(html).toContain("Imagem indisponivel");
+    expect(html).toContain("Imagem indisponível");
   });
 
   it("labels uncategorized products as Outros", () => {

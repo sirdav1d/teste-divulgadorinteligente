@@ -30,6 +30,7 @@ describe("ProductGrid", () => {
     const html = renderToStaticMarkup(
       <ProductGrid
         {...({
+          onAddToCart: () => {},
           products,
           totalCount: 13,
           onLoadMore: () => {},

@@ -12,7 +12,7 @@ export default function Loading() {
           Preparando a vitrine
         </h1>
         <p className="mt-4 max-w-xl text-sm leading-7 text-foreground-muted sm:text-base">
-          Reunindo produtos, categorias e atmosfera para a selecao atual.
+          Reunindo produtos, categorias e atmosfera para a seleção atual.
         </p>
       </section>
     </main>

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import CategoryFilter from "../../components/catalog/category-filter";
 
 describe("CategoryFilter", () => {
-  it("uses a stronger active contrast treatment for the selected category", () => {
+  it("renders a command trigger for category selection", () => {
     const html = renderToStaticMarkup(
       <CategoryFilter
         options={[
@@ -16,10 +16,9 @@ describe("CategoryFilter", () => {
       />,
     );
 
-    expect(html).toContain("justify-center");
-    expect(html).toContain("bg-brand-primary-strong");
-    expect(html).toContain("text-surface");
-    expect(html).toContain("border-border-strong");
+    expect(html).toContain("Categorias");
+    expect(html).toContain("Todas as categorias");
+    expect(html).toContain("layout-grid");
     expect(html).toContain("bg-surface");
   });
 });

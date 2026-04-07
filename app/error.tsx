@@ -26,10 +26,10 @@ export default function ErrorPage({ error, unstable_retry }: ErrorPageProps) {
 					Instabilidade no app
 				</p>
 				<h1 className='mt-4 text-4xl text-balance font-semibold tracking-[-0.05em] text-foreground sm:text-5xl'>
-					Nao foi possivel abrir esta vitrine
+					Não foi possível abrir esta vitrine
 				</h1>
 				<p className='mt-4 max-w-xl text-sm leading-7 text-foreground-muted sm:text-base'>
-					Recarregue a pagina para retomar a navegacao.
+					Recarregue a página para retomar a navegação.
 				</p>
 				<button
 					type='button'

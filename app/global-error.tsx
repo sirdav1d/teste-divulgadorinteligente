@@ -21,14 +21,14 @@ export default function GlobalErrorPage({
 
         <main className="relative w-full max-w-2xl rounded-[2rem] border border-border-soft bg-surface-glass px-8 py-10 shadow-(--shadow-float) backdrop-blur-md">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-foreground-muted">
-            Recuperacao global
+            Recuperação global
           </p>
           <h1 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-foreground sm:text-5xl">
-            A experiencia saiu do ar
+            A experiência saiu do ar
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-7 text-foreground-muted sm:text-base">
-            Esta camada substituiu o layout raiz. Tente recuperar a experiencia
-            e retomar a navegacao a partir de uma renderizacao limpa.
+            Esta camada substituiu o layout raiz. Tente recuperar a experiência
+            e retomar a navegação a partir de uma renderização limpa.
           </p>
           <button
             type="button"

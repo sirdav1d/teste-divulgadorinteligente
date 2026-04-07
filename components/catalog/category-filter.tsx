@@ -1,48 +1,42 @@
-import type { CategoryOption } from "@/lib/storefront/category-filters";
+/** @format */
+
+'use client';
+
+import { LayoutGridIcon } from 'lucide-react';
+
+import type { CategoryOption } from '@/lib/storefront/category-filters';
+
+import CommandFilter from './command-filter';
 
 type CategoryFilterProps = {
-  options: readonly CategoryOption[];
-  selectedValue: string;
-  onValueChange: (value: string) => void;
+	isPending?: boolean;
+	options: readonly CategoryOption[];
+	selectedValue: string;
+	onValueChange: (value: string) => void;
 };
 
 export default function CategoryFilter({
-  options,
-  selectedValue,
-  onValueChange,
+	isPending = false,
+	options,
+	selectedValue,
+	onValueChange,
 }: CategoryFilterProps) {
-  return (
-    <section aria-label="Categorias do catalogo" className="w-full">
-      <div className="flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
-        {options.map((option) => {
-          const isSelected = option.value === selectedValue;
-
-          return (
-            <button
-              aria-pressed={isSelected}
-              key={option.value}
-              type="button"
-              className={
-                isSelected
-                  ? "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full border border-brand-primary-strong bg-brand-primary-strong px-5 py-2.5 text-sm font-semibold text-surface shadow-(--shadow-soft)"
-                  : "inline-flex min-h-11 items-center justify-center gap-2.5 rounded-full border border-border-strong bg-surface px-5 py-2.5 text-sm font-medium text-foreground transition hover:border-brand-primary-strong hover:bg-surface-elevated hover:text-brand-primary-strong"
-              }
-              onClick={() => onValueChange(option.value)}
-            >
-              <span>{option.label}</span>
-              <span
-                className={
-                  isSelected
-                    ? "rounded-full bg-surface px-2.5 py-0.5 text-[11px] font-semibold text-brand-primary-strong"
-                    : "rounded-full bg-surface-muted px-2.5 py-0.5 text-[11px] font-medium text-foreground"
-                }
-              >
-                {option.count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
+	return (
+		<CommandFilter
+			label='Categorias'
+			placeholder='Selecione uma categoria'
+			searchPlaceholder='Buscar categoria...'
+			emptyMessage='Nenhuma categoria encontrada.'
+			isPending={isPending}
+			selectedValue={selectedValue}
+			options={options.map((option) => ({
+				value: option.value,
+				label: option.value === 'all' ? 'Todas as categorias' : option.label,
+				count: option.count,
+				keywords: [option.label],
+			}))}
+			onValueChange={onValueChange}
+			icon={<LayoutGridIcon className='size-5' />}
+		/>
+	);
 }

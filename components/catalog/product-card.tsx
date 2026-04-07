@@ -1,12 +1,14 @@
 /** @format */
+/* eslint-disable @next/next/no-img-element */
 
-import Image from 'next/image';
+'use client';
 
 import { getCategoryLabel } from '@/lib/storefront/category-filters';
 import type { Product } from '@/lib/types/divulgador';
 
 type ProductCardProps = {
 	product: Product;
+	onAddToCart?: (product: Product) => void;
 };
 
 const SELLER_LABELS: Record<string, string> = {
@@ -20,27 +22,25 @@ function getSellerLabel(seller: string) {
 	return SELLER_LABELS[seller] ?? seller;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({
+	product,
+	onAddToCart,
+}: ProductCardProps) {
 	return (
 		<article className='group flex h-full flex-col overflow-hidden rounded-2xl border border-border-soft bg-surface shadow-(--shadow-soft)'>
-			<a
-				className='flex h-full flex-col'
-				href={product.link}
-				target='_blank'
-				rel='noopener noreferrer'>
+			<div className='flex h-full flex-col'>
 				<div className='relative aspect-[4/4.6] overflow-hidden bg-white'>
 					{product.imageUrl ? (
-						<Image
+						<img
 							alt={product.title}
-							className='object-cover transition-transform duration-500 group-hover:scale-[1.1]'
-							fill
-							sizes='(min-width: 1536px) 32rem, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, 100vw'
+							className='h-full w-full object-cover transition-transform duration-500 group-hover:scale-110'
+							loading='lazy'
 							src={product.imageUrl}
 						/>
 					) : (
 						<div className='flex h-full items-center justify-center text-center'>
 							<p className='text-sm text-foreground-muted'>
-								Imagem indisponivel
+								Imagem indisponível
 							</p>
 						</div>
 					)}
@@ -63,7 +63,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 							</p>
 						) : null}
 						<p className='text-2xl font-semibold tracking-[-0.04em] text-foreground'>
-							{product.priceLabel ?? 'Consulte o preco'}
+							{product.priceLabel ?? 'Consulte o preço'}
 						</p>
 						{product.installment ? (
 							<p className='text-sm leading-7 text-foreground-muted'>
@@ -78,12 +78,15 @@ export default function ProductCard({ product }: ProductCardProps) {
 								{`Cupom ${product.couponCode}`}
 							</span>
 						) : null}
-						<span className='inline-flex w-full items-center justify-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-4 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft)'>
-							Ver oferta
-						</span>
+						<button
+							type='button'
+							onClick={() => onAddToCart?.(product)}
+							className='inline-flex w-full items-center justify-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-4 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft) transition hover:border-brand-primary hover:bg-brand-primary'>
+							Adicionar ao carrinho
+						</button>
 					</div>
 				</div>
-			</a>
+			</div>
 		</article>
 	);
 }

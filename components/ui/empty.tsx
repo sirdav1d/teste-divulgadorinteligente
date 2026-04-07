@@ -11,7 +11,7 @@ function Empty({ className, ...props }: EmptyProps) {
     <section
       data-slot="empty"
       className={cn(
-        "flex w-full flex-col items-center justify-center rounded-[2rem] border border-border-strong bg-surface px-6 py-12 text-center shadow-(--shadow-soft) sm:px-10",
+        "flex w-full flex-col items-center justify-center px-6 py-12 text-center sm:px-10",
         className,
       )}
       {...props}

@@ -1,11 +1,13 @@
 import type { FormEvent } from "react";
 
 type SearchBoxProps = {
+  className?: string;
   value: string;
   onValueChange: (value: string) => void;
 };
 
 export default function SearchBox({
+  className = "",
   value,
   onValueChange,
 }: SearchBoxProps) {
@@ -14,8 +16,8 @@ export default function SearchBox({
   }
 
   return (
-    <section className="mx-auto w-full max-w-6xl">
-      <label className="flex min-h-16 items-center rounded-[1.75rem] border border-border-soft bg-surface px-5 py-4 shadow-(--shadow-soft) sm:px-6">
+    <section className={`mx-auto flex h-16 w-full max-w-6xl ${className}`}>
+      <label className="flex h-full w-full items-center rounded-md border border-border-soft bg-surface px-5 py-4 shadow-(--shadow-soft) sm:px-6">
         <span className="sr-only">Buscar produtos da vitrine</span>
         <svg
           aria-hidden="true"
@@ -34,10 +36,10 @@ export default function SearchBox({
         <input
           aria-label="Buscar produtos da vitrine"
           autoComplete="off"
-          className="w-full flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-foreground-muted sm:text-lg"
+          className="w-full flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-sm placeholder:text-foreground-muted sm:text-lg sm:placeholder:text-base"
           enterKeyHint="search"
           name="search"
-          placeholder="Busque por produto, categoria ou ocasiao"
+          placeholder="Busque por produto, categoria ou ocasião"
           type="search"
           value={value}
           onInput={handleInput}

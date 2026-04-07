@@ -2,24 +2,65 @@
 
 import type { Product } from '@/lib/types/divulgador';
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 import ProductCard from './product-card';
 
 type ProductGridProps = {
+	isPending?: boolean;
+	onAddToCart: (product: Product) => void;
 	products: readonly Product[];
 	totalCount?: number;
 	onLoadMore?: () => void;
 };
 
+type ProductCardSkeletonProps = {
+	index: number;
+};
+
+function ProductCardSkeleton({ index }: ProductCardSkeletonProps) {
+	return (
+		<article
+			aria-hidden='true'
+			className='flex h-full flex-col overflow-hidden rounded-2xl border border-border-soft bg-surface shadow-(--shadow-soft)'>
+			<Skeleton className='aspect-[4/4.6] rounded-none bg-surface-muted' />
+			<div className='flex flex-1 flex-col gap-4 px-5 py-5 sm:px-6'>
+				<div className='flex items-center justify-between gap-3'>
+					<Skeleton className='h-3 w-20 bg-surface-muted' />
+					<Skeleton className='h-3 w-16 bg-surface-muted' />
+				</div>
+				<div className='space-y-3'>
+					<Skeleton className='h-5 w-full bg-surface-muted' />
+					<Skeleton className='h-5 w-4/5 bg-surface-muted' />
+				</div>
+				<div className='space-y-2'>
+					<Skeleton className='h-4 w-24 bg-surface-muted' />
+					<Skeleton className='h-7 w-32 bg-surface-muted' />
+				</div>
+				<div className='mt-auto flex flex-col gap-3 pt-8'>
+					{index % 2 === 0 ? (
+						<Skeleton className='h-4 w-24 bg-surface-muted' />
+					) : null}
+					<Skeleton className='h-11 w-full rounded-full bg-surface-muted' />
+				</div>
+			</div>
+		</article>
+	);
+}
+
 export default function ProductGrid({
+	isPending = false,
+	onAddToCart,
 	products,
 	totalCount = products.length,
 	onLoadMore,
 }: ProductGridProps) {
 	const hasMoreProducts = totalCount > products.length && onLoadMore;
+	const skeletonCount = Math.max(Math.min(products.length || 12, 12), 4);
 
 	return (
 		<section
-			aria-label='Produtos visiveis'
+			aria-label='Produtos visíveis'
 			className='space-y-6'>
 			<div className='flex flex-col gap-3 border-b border-border-soft pb-5 sm:flex-row sm:items-end sm:justify-between'>
 				<div>
@@ -32,21 +73,33 @@ export default function ProductGrid({
 				</p>
 			</div>
 
-			<div className='grid gap-6 md:grid-cols-2 md:gap-7 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8'>
-				{products.map((product) => (
-					<ProductCard
-						key={product.id}
-						product={product}
-					/>
-				))}
-			</div>
+			{isPending ? (
+				<div className='grid gap-6 md:grid-cols-2 md:gap-7 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8'>
+					{Array.from({ length: skeletonCount }, (_, index) => (
+						<ProductCardSkeleton
+							key={`skeleton-${index + 1}`}
+							index={index}
+						/>
+					))}
+				</div>
+			) : (
+				<div className='grid gap-6 md:grid-cols-2 md:gap-7 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8'>
+					{products.map((product) => (
+						<ProductCard
+							key={product.id}
+							product={product}
+							onAddToCart={onAddToCart}
+						/>
+					))}
+				</div>
+			)}
 
-			{hasMoreProducts ? (
+			{hasMoreProducts && !isPending ? (
 				<div className='flex justify-center pt-4'>
 					<button
 						type='button'
 						onClick={onLoadMore}
-						className='inline-flex items-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-6 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft) transition hover:bg-brand-primary hover:border-brand-primary'>
+						className='inline-flex items-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-6 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft) transition hover:border-brand-primary hover:bg-brand-primary'>
 						Ver mais
 					</button>
 				</div>

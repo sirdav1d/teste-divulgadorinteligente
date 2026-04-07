@@ -5,7 +5,7 @@ import StorefrontHeader from "../../components/storefront/storefront-header";
 
 describe("StorefrontHeader", () => {
   it("renders the official brand logo with the approved hero media", () => {
-    const html = renderToStaticMarkup(<StorefrontHeader selectedCoupon={null} />);
+    const html = renderToStaticMarkup(<StorefrontHeader />);
 
     expect(html).toContain("Ofertas em movimento");
     expect(html).toContain("<video");
