@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useState } from "react";
 
 import {
   ALL_CATEGORY_VALUE,
@@ -39,9 +39,15 @@ export default function StorefrontClient({
   const visibleProducts = filteredProducts.slice(0, visibleCount);
   const hasMoreProducts = filteredProducts.length > visibleCount;
 
-  useEffect(() => {
+  function handleSearchChange(value: string) {
+    setSearchQuery(value);
     setVisibleCount(PAGE_SIZE);
-  }, [deferredSearchQuery, selectedCategory]);
+  }
+
+  function handleCategoryChange(value: string) {
+    setSelectedCategory(value);
+    setVisibleCount(PAGE_SIZE);
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 lg:px-8 xl:px-10">
@@ -55,12 +61,12 @@ export default function StorefrontClient({
           id="catalogo"
           className="rounded-[2rem] border border-border-soft bg-surface-glass px-5 py-5 shadow-[var(--shadow-soft)] backdrop-blur-md sm:px-6"
         >
-          <SearchBox value={searchQuery} onValueChange={setSearchQuery} />
+          <SearchBox value={searchQuery} onValueChange={handleSearchChange} />
           <div className="mt-4">
             <CategoryFilter
               options={availableCategories}
               selectedValue={selectedCategory}
-              onValueChange={setSelectedCategory}
+              onValueChange={handleCategoryChange}
             />
           </div>
         </section>

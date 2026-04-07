@@ -33,7 +33,7 @@ export default function GlobalErrorPage({
           <button
             type="button"
             onClick={() => unstable_retry()}
-            className="mt-8 inline-flex items-center rounded-full border border-brand-primary bg-brand-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-primary-strong"
+            className="mt-8 inline-flex items-center rounded-full border border-brand-primary bg-brand-primary px-5 py-3 text-sm font-semibold text-text-on-brand transition hover:bg-brand-primary-strong"
           >
             Tentar recuperar
           </button>
