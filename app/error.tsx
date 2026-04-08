@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useLogError } from '@/hooks/app/use-log-error';
 
 type ErrorPageProps = {
 	error: Error & { digest?: string };
@@ -10,11 +10,7 @@ type ErrorPageProps = {
 };
 
 export default function ErrorPage({ error, unstable_retry }: ErrorPageProps) {
-	useEffect(() => {
-		if (process.env.NODE_ENV !== 'test') {
-			console.error(error);
-		}
-	}, [error]);
+	useLogError(error);
 
 	return (
 		<main className='relative flex min-h-svh items-center justify-center overflow-hidden px-6 py-10'>

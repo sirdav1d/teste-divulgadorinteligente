@@ -5,7 +5,7 @@
 import { ShoppingBagIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/helpers/ui/cn';
 
 type CartTriggerProps = {
 	itemCount: number;

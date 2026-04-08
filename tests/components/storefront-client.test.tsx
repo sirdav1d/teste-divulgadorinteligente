@@ -2,12 +2,15 @@
 
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import StorefrontClient from '../../components/storefront/storefront-client';
-import type { Coupon, Product } from '../../lib/types/divulgador';
+import type { CatalogPageResult } from '../../types/catalog';
+import type { Coupon, Product } from '../../types/divulgador';
 
 const replaceMock = vi.fn();
+const fetchMock = vi.fn();
+let replaceStateSpy: ReturnType<typeof vi.spyOn>;
 
 vi.mock('next/navigation', () => ({
 	usePathname: () => '/',
@@ -72,7 +75,24 @@ const products: Product[] = [
 		freeShipping: true,
 		category: 'office',
 	}),
-	...Array.from({ length: 12 }, (_, index) => createProduct(index + 4)),
+	...Array.from({ length: 37 }, (_, index) =>
+		createProduct(index + 4, {
+			title:
+				index + 4 === 25
+					? 'Notebook gamer Nitro 5'
+					: index + 4 === 26
+						? 'Cadeira office premium'
+						: index + 4 === 28
+							? 'Mangueira garden premium'
+						: `Produto ${index + 4}`,
+			category:
+				index + 4 === 26
+					? 'office'
+					: index + 4 === 28
+						? 'garden'
+						: createProduct(index + 4).category,
+		}),
+	),
 ];
 
 const coupons: Coupon[] = [
@@ -100,7 +120,104 @@ const coupons: Coupon[] = [
 	},
 ];
 
-function renderStorefront() {
+function buildCatalogPage({
+	category = null,
+	coupon = null,
+	offset = 0,
+	search = null,
+}: {
+	category?: string | null;
+	coupon?: string | null;
+	offset?: number;
+	search?: string | null;
+} = {}): CatalogPageResult {
+	const categoryCounts = new Map<string, number>();
+	let otherCount = 0;
+	const couponScopedProducts = products.filter((product) =>
+		coupon ? product.couponCode === coupon : true,
+	);
+	const normalizedSearch = search?.trim().toLocaleLowerCase('pt-BR') ?? '';
+	const filteredProducts = products
+		.filter((product) => {
+			if (!category || category === 'all') {
+				return true;
+			}
+
+			if (category === 'others') {
+				return !product.category;
+			}
+
+			return product.category === category;
+		})
+		.filter((product) =>
+			coupon ? product.couponCode === coupon : true,
+		)
+		.filter((product) =>
+			normalizedSearch
+				? product.title.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
+				: true,
+		);
+	const pageProducts = filteredProducts.slice(offset, offset + 20);
+	const nextOffset =
+		offset + pageProducts.length < filteredProducts.length
+			? offset + pageProducts.length
+			: null;
+
+	for (const product of couponScopedProducts) {
+		const normalizedCategory = product.category?.trim();
+
+		if (!normalizedCategory) {
+			otherCount += 1;
+			continue;
+		}
+
+		categoryCounts.set(
+			normalizedCategory,
+			(categoryCounts.get(normalizedCategory) ?? 0) + 1,
+		);
+	}
+
+	const availableCategories = [
+		{
+			value: 'all',
+			label: 'Todos',
+			count: couponScopedProducts.length,
+		},
+		...[...categoryCounts.entries()]
+			.sort(([left], [right]) => left.localeCompare(right, 'pt-BR'))
+			.map(([value, count]) => ({
+				value,
+				label: value.replace(/\b\w/g, (letter) => letter.toUpperCase()),
+				count,
+			})),
+		...(otherCount > 0
+			? [
+					{
+						value: 'others',
+						label: 'Outros',
+						count: otherCount,
+					},
+				]
+			: []),
+	];
+
+	return {
+		availableCategories,
+		products: pageProducts,
+		hasMore: nextOffset !== null,
+		nextOffset,
+	};
+}
+
+function renderStorefront({
+	selectedCategory = null,
+	selectedCoupon = null,
+	selectedSearch = null,
+}: {
+	selectedCategory?: string | null;
+	selectedCoupon?: string | null;
+	selectedSearch?: string | null;
+} = {}) {
 	const container = document.createElement('div');
 	document.body.appendChild(container);
 	const root = createRoot(container);
@@ -108,10 +225,15 @@ function renderStorefront() {
 	act(() => {
 		root.render(
 			<StorefrontClient
+				catalogPage={buildCatalogPage({
+					category: selectedCategory,
+					coupon: selectedCoupon,
+					search: selectedSearch,
+				})}
 				coupons={coupons}
-				products={products}
-				selectedCategory={null}
-				selectedCoupon={null}
+				selectedCategory={selectedCategory}
+				selectedCoupon={selectedCoupon}
+				selectedSearch={selectedSearch}
 			/>,
 		);
 	});
@@ -127,8 +249,46 @@ function renderStorefront() {
 	};
 }
 
+beforeEach(() => {
+	replaceMock.mockReset();
+	fetchMock.mockReset();
+	window.history.replaceState(null, '', '/');
+	replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+	fetchMock.mockImplementation(async (input: string | URL | Request) => {
+		const requestUrl =
+			typeof input === 'string'
+				? input
+				: input instanceof URL
+					? input.toString()
+					: input.url;
+		const url = new URL(requestUrl, 'http://localhost');
+
+		if (url.pathname !== '/api/catalog') {
+			throw new Error(`Unexpected fetch target: ${url.pathname}`);
+		}
+
+		return {
+			ok: true,
+			json: async () =>
+				buildCatalogPage({
+					category: url.searchParams.get('category'),
+					coupon: url.searchParams.get('coupon'),
+					offset: Number.parseInt(
+						url.searchParams.get('offset') ?? '0',
+						10,
+					),
+					search: url.searchParams.get('search'),
+				}),
+		};
+	});
+
+	vi.stubGlobal('fetch', fetchMock);
+});
+
 afterEach(() => {
+	replaceStateSpy.mockRestore();
 	vi.clearAllMocks();
+	vi.unstubAllGlobals();
 	document.body.innerHTML = '';
 });
 
@@ -137,6 +297,7 @@ describe('StorefrontClient', () => {
 		const view = renderStorefront();
 		const main = view.container.querySelector('main');
 		const header = view.container.querySelector('main > header');
+		const filterGrid = view.container.querySelector('#catalogo > div');
 
 		expect(main).not.toBeNull();
 		expect(main!.className).not.toContain('px-4');
@@ -144,16 +305,19 @@ describe('StorefrontClient', () => {
 		expect(main!.className).not.toContain('lg:px-8');
 		expect(main!.className).not.toContain('xl:px-10');
 		expect(header).not.toBeNull();
+		expect(filterGrid).not.toBeNull();
+		expect(filterGrid!.className).toContain('w-full');
+		expect(filterGrid!.className).not.toContain('max-w-6xl');
 		expect(view.container.textContent).toContain(
 			'Ofertas em movimento, com acabamento premium.',
 		);
 		expect(view.container.textContent).not.toContain('Busca local');
 		expect(view.container.textContent).not.toContain('Buscar na vitrine');
 		expect(view.container.textContent).not.toContain(
-			'Refine a seleção atual sem perder o ritmo da descoberta.',
+			'Refine a seleÃ§Ã£o atual sem perder o ritmo da descoberta.',
 		);
 		expect(view.container.textContent).not.toContain('Categorias do momento');
-		expect(view.container.textContent).not.toContain('Navegação');
+		expect(view.container.textContent).not.toContain('NavegaÃ§Ã£o');
 		expect(view.container.textContent).not.toContain('Catalog for calm review');
 		expect(view.container.textContent).toContain('Cupons');
 		expect(view.container.textContent).toContain('Todos os cupons');
@@ -168,7 +332,7 @@ describe('StorefrontClient', () => {
 			'Mouse Vertical Sem Fio Ergonomico Office Preto',
 		);
 		expect(view.container.textContent).toContain('Ver mais');
-		expect(view.container.textContent).not.toContain('Produto 13');
+		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
 		expect(view.container.innerHTML).toContain('mx-auto w-full max-w-[92rem]');
 		expect(view.container.innerHTML).toContain('sticky top-0 z-30');
 		expect(view.container.innerHTML).not.toContain('bg-surface-glass');
@@ -176,20 +340,23 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
-	it('filters products by title as the user types', () => {
+	it('searches the full remote catalog as the user types', async () => {
 		const view = renderStorefront();
 		const input = view.container.querySelector("input[name='search']");
 
 		expect(input).not.toBeNull();
 
-		act(() => {
+		await act(async () => {
 			input!.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
-			input!.setAttribute('value', 'Panela');
-			Object.assign(input!, { value: 'Panela' });
+			input!.setAttribute('value', 'Notebook');
+			Object.assign(input!, { value: 'Notebook' });
 			input!.dispatchEvent(new Event('input', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
 		});
 
-		expect(view.container.textContent).toContain('Panela Eletrica Electrolux');
+		expect(fetchMock).toHaveBeenCalled();
+		expect(view.container.textContent).toContain('Notebook gamer Nitro 5');
 		expect(view.container.textContent).not.toContain(
 			'Kit 2 Macaquinho Curto Fitness Poli Academia',
 		);
@@ -197,15 +364,36 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
-	it('shows an empty state when the search has no matches', () => {
+	it('shows remote category options even when they are outside the first loaded page', async () => {
+		const view = renderStorefront();
+		const categoryButton = [...view.container.querySelectorAll('button')].find(
+			(button) => button.textContent?.includes('Categorias'),
+		);
+
+		expect(categoryButton).not.toBeUndefined();
+		expect(view.container.textContent).not.toContain('Mangueira garden premium');
+
+		await act(async () => {
+			categoryButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+		});
+
+		expect(document.body.textContent).toContain('Garden');
+
+		view.cleanup();
+	});
+
+	it('shows an empty state when the remote search has no matches', async () => {
 		const view = renderStorefront();
 		const input = view.container.querySelector("input[name='search']");
 
 		expect(input).not.toBeNull();
 
-		act(() => {
-			Object.assign(input!, { value: 'Notebook gamer' });
+		await act(async () => {
+			Object.assign(input!, { value: 'Tablet inexistente' });
 			input!.dispatchEvent(new Event('input', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
 		});
 
 		expect(view.container.textContent).toContain(
@@ -215,7 +403,7 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
-	it('combines category and search filters', () => {
+	it('combines category and search across the full remote catalog', async () => {
 		const view = renderStorefront();
 		const othersButton = [...view.container.querySelectorAll('button')].find(
 			(button) => button.textContent?.includes('Categorias'),
@@ -231,19 +419,19 @@ describe('StorefrontClient', () => {
 
 		const categoryOption = [
 			...document.querySelectorAll("[data-slot='command-item']"),
-		].find((node) => node.textContent?.includes('Outros'));
+		].find((node) => node.textContent?.includes('Office'));
 
 		expect(categoryOption).not.toBeUndefined();
 
-		act(() => {
+		await act(async () => {
 			categoryOption!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-			Object.assign(input!, { value: 'Kit' });
+			Object.assign(input!, { value: 'Cadeira' });
 			input!.dispatchEvent(new Event('input', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
 		});
 
-		expect(view.container.textContent).toContain(
-			'Kit 2 Macaquinho Curto Fitness Poli Academia',
-		);
+		expect(view.container.textContent).toContain('Cadeira office premium');
 		expect(view.container.textContent).not.toContain(
 			'Panela Eletrica Electrolux',
 		);
@@ -254,7 +442,7 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
-	it('reveals 12 more products at a time and resets when filters change', () => {
+	it('loads more remote products and resets the accumulated list when filters change', async () => {
 		const view = renderStorefront();
 		const loadMoreButton = [...view.container.querySelectorAll('button')].find(
 			(button) => button.textContent?.includes('Ver mais'),
@@ -265,16 +453,19 @@ describe('StorefrontClient', () => {
 
 		expect(loadMoreButton).not.toBeUndefined();
 		expect(othersButton).not.toBeUndefined();
-		expect(view.container.textContent).not.toContain('Produto 13');
+		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
 
-		act(() => {
+		await act(async () => {
 			loadMoreButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
 		});
 
-		expect(view.container.textContent).toContain('Produto 13');
+		expect(view.container.textContent).toContain('Notebook gamer Nitro 5');
 
-		act(() => {
+		await act(async () => {
 			othersButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
 		});
 
 		const categoryOption = [
@@ -283,11 +474,13 @@ describe('StorefrontClient', () => {
 
 		expect(categoryOption).not.toBeUndefined();
 
-		act(() => {
+		await act(async () => {
 			categoryOption!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
 		});
 
-		expect(view.container.textContent).not.toContain('Produto 13');
+		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
 		expect(view.container.textContent).toContain(
 			'Kit 2 Macaquinho Curto Fitness Poli Academia',
 		);
@@ -295,7 +488,7 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
-	it('navigates when the user selects a coupon from the command list', () => {
+	it('syncs the url with native history when the user selects a coupon from the command list', () => {
 		const view = renderStorefront();
 		const couponButton = [...view.container.querySelectorAll('button')].find(
 			(button) => button.textContent?.includes('Cupons'),
@@ -318,9 +511,14 @@ describe('StorefrontClient', () => {
 		});
 
 		expect(couponButton!.textContent).toContain('AGORAVAI');
-		expect(replaceMock).toHaveBeenCalledWith('/?coupon=AGORAVAI#catalogo', {
-			scroll: false,
-		});
+		expect(replaceMock).not.toHaveBeenCalled();
+		expect(replaceStateSpy).toHaveBeenCalledWith(
+			null,
+			'',
+			'/?coupon=AGORAVAI#catalogo',
+		);
+		expect(window.location.search).toBe('?coupon=AGORAVAI');
+		expect(window.location.hash).toBe('#catalogo');
 
 		view.cleanup();
 	});
@@ -348,46 +546,159 @@ describe('StorefrontClient', () => {
 		});
 
 		expect(categoryButton!.textContent).toContain('Outros');
-		expect(replaceMock).toHaveBeenCalledWith('/?category=others#catalogo', {
-			scroll: false,
-		});
+		expect(replaceMock).not.toHaveBeenCalled();
+		expect(replaceStateSpy).toHaveBeenCalledWith(
+			null,
+			'',
+			'/?category=others#catalogo',
+		);
+		expect(window.location.search).toBe('?category=others');
+		expect(window.location.hash).toBe('#catalogo');
 
 		view.cleanup();
 	});
 
-	it('adds products to the cart sheet and removes external card anchors', () => {
+	it('syncs quantity controls between the product card and the cart sheet', async () => {
 		const view = renderStorefront();
-		const addToCartButton = [...view.container.querySelectorAll('button')].find(
-			(button) =>
-				button.textContent?.includes('Adicionar ao carrinho') &&
-				button.textContent?.includes('Panela') === false,
+		const productTitle =
+			'Panela Eletrica Electrolux vapor arroz capacidade 1,8L 10 xicaras';
+		const productCard = [...view.container.querySelectorAll('article')].find(
+			(article) => article.textContent?.includes(productTitle),
 		);
+		const addToCartButton = [
+			...(productCard?.querySelectorAll('button') ?? []),
+		].find((button) => button.textContent?.includes('Adicionar ao carrinho'));
 		const productAnchor = view.container.querySelector(
 			'a[href="https://example.com/products/1"]',
 		);
 
+		expect(productCard).not.toBeUndefined();
 		expect(addToCartButton).not.toBeUndefined();
 		expect(productAnchor).toBeNull();
 
 		act(() => {
-			addToCartButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			addToCartButton!.dispatchEvent(
+				new MouseEvent('click', { bubbles: true }),
+			);
 		});
 
-		const cartTrigger = [...document.querySelectorAll('button')].find((button) =>
-			button.getAttribute('aria-label')?.includes('Abrir carrinho'),
+		const updatedCard = [...view.container.querySelectorAll('article')].find(
+			(article) => article.textContent?.includes(productTitle),
+		);
+		const cardQuantityValue = updatedCard?.querySelector(
+			"[data-slot='cart-quantity-value']",
+		);
+		const cardDecrementButton = [
+			...(updatedCard?.querySelectorAll('button') ?? []),
+		].find((button) =>
+			button
+				.getAttribute('aria-label')
+				?.includes(`Remover uma unidade de ${productTitle}`),
+		);
+
+		expect(updatedCard?.textContent).not.toContain('Adicionar ao carrinho');
+		expect(cardQuantityValue?.textContent).toBe('1');
+		expect(cardDecrementButton).not.toBeUndefined();
+
+		const cartTrigger = [...document.querySelectorAll('button')].find(
+			(button) => button.getAttribute('aria-label')?.includes('Abrir carrinho'),
 		);
 
 		expect(cartTrigger).not.toBeUndefined();
 		expect(cartTrigger!.textContent).toContain('1');
 
-		act(() => {
+		await act(async () => {
 			cartTrigger!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
 		});
 
-		expect(document.body.textContent).toContain(
-			'Panela Eletrica Electrolux vapor arroz capacidade 1,8L 10 xicaras',
+		const sheetContent = document.body.querySelector(
+			"[data-slot='sheet-content']",
 		);
+		const sheetLine = [
+			...(sheetContent?.querySelectorAll('article') ?? []),
+		].find((article) => article.textContent?.includes(productTitle));
+		const sheetQuantityValue = sheetLine?.querySelector(
+			"[data-slot='cart-quantity-value']",
+		);
+		const sheetIncrementButton = [
+			...(sheetLine?.querySelectorAll('button') ?? []),
+		].find((button) =>
+			button
+				.getAttribute('aria-label')
+				?.includes(`Adicionar uma unidade de ${productTitle}`),
+		);
+		const sheetDecrementButton = [
+			...(sheetLine?.querySelectorAll('button') ?? []),
+		].find((button) =>
+			button
+				.getAttribute('aria-label')
+				?.includes(`Remover uma unidade de ${productTitle}`),
+		);
+
+		expect(sheetLine).not.toBeUndefined();
+		expect(sheetQuantityValue?.textContent).toBe('1');
 		expect(document.body.textContent).toContain('R$\u00a0269,82');
+		expect(sheetIncrementButton).not.toBeUndefined();
+		expect(sheetDecrementButton).not.toBeUndefined();
+
+		act(() => {
+			sheetIncrementButton!.dispatchEvent(
+				new MouseEvent('click', { bubbles: true }),
+			);
+		});
+
+		const incrementedCard = [
+			...view.container.querySelectorAll('article'),
+		].find((article) => article.textContent?.includes(productTitle));
+		const incrementedSheetLine = [
+			...(sheetContent?.querySelectorAll('article') ?? []),
+		].find((article) => article.textContent?.includes(productTitle));
+
+		expect(
+			incrementedCard?.querySelector("[data-slot='cart-quantity-value']")
+				?.textContent,
+		).toBe('2');
+		expect(
+			incrementedSheetLine?.querySelector("[data-slot='cart-quantity-value']")
+				?.textContent,
+		).toBe('2');
+		expect(incrementedSheetLine?.textContent).toContain('2 x R$\u00a0269,82');
+		expect(incrementedSheetLine?.textContent).toContain('R$\u00a0539,64');
+
+		act(() => {
+			cardDecrementButton!.dispatchEvent(
+				new MouseEvent('click', { bubbles: true }),
+			);
+		});
+
+		const decrementedCard = [
+			...view.container.querySelectorAll('article'),
+		].find((article) => article.textContent?.includes(productTitle));
+		const decrementedSheetLine = [
+			...(sheetContent?.querySelectorAll('article') ?? []),
+		].find((article) => article.textContent?.includes(productTitle));
+
+		expect(
+			decrementedCard?.querySelector("[data-slot='cart-quantity-value']")
+				?.textContent,
+		).toBe('1');
+		expect(
+			decrementedSheetLine?.querySelector("[data-slot='cart-quantity-value']")
+				?.textContent,
+		).toBe('1');
+
+		act(() => {
+			sheetDecrementButton!.dispatchEvent(
+				new MouseEvent('click', { bubbles: true }),
+			);
+		});
+
+		const resetCard = [...view.container.querySelectorAll('article')].find(
+			(article) => article.textContent?.includes(productTitle),
+		);
+
+		expect(resetCard?.textContent).toContain('Adicionar ao carrinho');
 
 		view.cleanup();
 	});

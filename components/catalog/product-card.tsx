@@ -3,28 +3,23 @@
 
 'use client';
 
-import { getCategoryLabel } from '@/lib/storefront/category-filters';
-import type { Product } from '@/lib/types/divulgador';
+import CartQuantityControl from '@/components/cart/cart-quantity-control';
+import { getCategoryLabel } from '@/helpers/storefront/category-filters';
+import { getSellerLabel } from '@/helpers/storefront/seller-label';
+import type { Product } from '@/types/divulgador';
 
 type ProductCardProps = {
 	product: Product;
-	onAddToCart?: (product: Product) => void;
+	quantity?: number;
+	onIncrement?: (product: Product) => void;
+	onDecrement?: (productId: string) => void;
 };
-
-const SELLER_LABELS: Record<string, string> = {
-	amazon: 'Amazon',
-	mercadolivre: 'Mercado Livre',
-	magalu: 'Magazine Luiza',
-	shopee: 'Shopee',
-};
-
-function getSellerLabel(seller: string) {
-	return SELLER_LABELS[seller] ?? seller;
-}
 
 export default function ProductCard({
 	product,
-	onAddToCart,
+	quantity = 0,
+	onIncrement,
+	onDecrement,
 }: ProductCardProps) {
 	return (
 		<article className='group flex h-full flex-col overflow-hidden rounded-2xl border border-border-soft bg-surface shadow-(--shadow-soft)'>
@@ -78,12 +73,22 @@ export default function ProductCard({
 								{`Cupom ${product.couponCode}`}
 							</span>
 						) : null}
-						<button
-							type='button'
-							onClick={() => onAddToCart?.(product)}
-							className='inline-flex w-full items-center justify-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-4 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft) transition hover:border-brand-primary hover:bg-brand-primary'>
-							Adicionar ao carrinho
-						</button>
+						{quantity > 0 ? (
+							<CartQuantityControl
+								productTitle={product.title}
+								quantity={quantity}
+								onIncrement={() => onIncrement?.(product)}
+								onDecrement={() => onDecrement?.(product.id)}
+								variant='card'
+							/>
+						) : (
+							<button
+								type='button'
+								onClick={() => onIncrement?.(product)}
+								className='inline-flex w-full items-center justify-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-4 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft) transition hover:border-brand-primary hover:bg-brand-primary'>
+								Adicionar ao carrinho
+							</button>
+						)}
 					</div>
 				</div>
 			</div>

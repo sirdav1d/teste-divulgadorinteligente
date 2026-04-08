@@ -1,16 +1,19 @@
 /** @format */
 
-import type { Product } from '@/lib/types/divulgador';
+import type { Product } from '@/types/divulgador';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
 import ProductCard from './product-card';
 
 type ProductGridProps = {
+	cartQuantities: Readonly<Record<string, number>>;
+	hasMoreProducts?: boolean;
 	isPending?: boolean;
-	onAddToCart: (product: Product) => void;
+	isLoadingMore?: boolean;
+	onIncrement: (product: Product) => void;
+	onDecrement: (productId: string) => void;
 	products: readonly Product[];
-	totalCount?: number;
 	onLoadMore?: () => void;
 };
 
@@ -49,14 +52,19 @@ function ProductCardSkeleton({ index }: ProductCardSkeletonProps) {
 }
 
 export default function ProductGrid({
+	cartQuantities,
+	hasMoreProducts = false,
 	isPending = false,
-	onAddToCart,
+	isLoadingMore = false,
+	onIncrement,
+	onDecrement,
 	products,
-	totalCount = products.length,
 	onLoadMore,
 }: ProductGridProps) {
-	const hasMoreProducts = totalCount > products.length && onLoadMore;
 	const skeletonCount = Math.max(Math.min(products.length || 12, 12), 4);
+	const resultLabel = hasMoreProducts
+		? `Mostrando ${products.length} ofertas.`
+		: `${products.length} ofertas encontradas.`;
 
 	return (
 		<section
@@ -69,7 +77,7 @@ export default function ProductGrid({
 					</h2>
 				</div>
 				<p className='text-sm leading-7 text-foreground-muted'>
-					{products.length} de {totalCount} ofertas encontradas.
+					{resultLabel}
 				</p>
 			</div>
 
@@ -88,19 +96,23 @@ export default function ProductGrid({
 						<ProductCard
 							key={product.id}
 							product={product}
-							onAddToCart={onAddToCart}
+							quantity={cartQuantities[product.id] ?? 0}
+							onIncrement={onIncrement}
+							onDecrement={onDecrement}
 						/>
 					))}
 				</div>
 			)}
 
-			{hasMoreProducts && !isPending ? (
+			{hasMoreProducts && onLoadMore && !isPending ? (
 				<div className='flex justify-center pt-4'>
 					<button
 						type='button'
+						aria-busy={isLoadingMore}
+						disabled={isLoadingMore}
 						onClick={onLoadMore}
-						className='inline-flex items-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-6 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft) transition hover:border-brand-primary hover:bg-brand-primary'>
-						Ver mais
+						className='inline-flex items-center rounded-full border border-brand-primary-strong bg-brand-primary-strong px-6 py-3 text-sm font-semibold text-surface shadow-(--shadow-soft) transition hover:border-brand-primary hover:bg-brand-primary disabled:cursor-wait disabled:opacity-70'>
+						{isLoadingMore ? 'Carregando...' : 'Ver mais'}
 					</button>
 				</div>
 			) : null}

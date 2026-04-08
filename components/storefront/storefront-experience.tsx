@@ -2,11 +2,12 @@
 
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 
-import type { Coupon, Product } from '@/lib/types/divulgador';
+import type { CatalogPageResult } from '@/types/catalog';
+import type { Coupon } from '@/types/divulgador';
+import { useCart } from '@/hooks/storefront/use-cart';
+import { useHeroVisibility } from '@/hooks/storefront/use-hero-visibility';
 
 import CartSheet from '../cart/cart-sheet';
 import CartTrigger from '../cart/cart-trigger';
@@ -14,23 +15,20 @@ import StorefrontFooter from './storefront-footer';
 import StorefrontCatalogClient from './storefront-catalog-client';
 import StorefrontHeader from './storefront-header';
 
-type CartLine = {
-	product: Product;
-	quantity: number;
-};
-
 type StorefrontExperienceProps = {
+	catalogPage: CatalogPageResult;
 	coupons: readonly Coupon[];
-	products: readonly Product[];
 	selectedCategory: string | null;
 	selectedCoupon: string | null;
+	selectedSearch: string | null;
 };
 
 export default function StorefrontExperience({
+	catalogPage,
 	coupons,
-	products,
 	selectedCategory,
 	selectedCoupon,
+	selectedSearch,
 }: StorefrontExperienceProps) {
 	const cartTriggerTransition = {
 		type: 'spring',
@@ -38,65 +36,17 @@ export default function StorefrontExperience({
 		damping: 34,
 		mass: 0.9,
 	} as const;
-	const heroRef = useRef<HTMLDivElement>(null);
-	const [cartOpen, setCartOpen] = useState(false);
-	const [cartLines, setCartLines] = useState<CartLine[]>([]);
-	const [isHeroVisible, setIsHeroVisible] = useState(true);
-
-	const itemCount = useMemo(
-		() => cartLines.reduce((sum, line) => sum + line.quantity, 0),
-		[cartLines],
-	);
-
-	useEffect(() => {
-		const heroElement = heroRef.current;
-
-		if (!heroElement || typeof IntersectionObserver === 'undefined') {
-			return;
-		}
-
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				setIsHeroVisible(entry.isIntersecting);
-			},
-			{
-				rootMargin: '-72px 0px -45% 0px',
-				threshold: 0.1,
-			},
-		);
-
-		observer.observe(heroElement);
-
-		return () => {
-			observer.disconnect();
-		};
-	}, []);
-
-	function handleAddToCart(product: Product) {
-		setCartLines((currentLines) => {
-			const existingLine = currentLines.find((line) => line.product.id === product.id);
-
-			if (!existingLine) {
-				return [...currentLines, { product, quantity: 1 }];
-			}
-
-			return currentLines.map((line) =>
-				line.product.id === product.id
-					? { ...line, quantity: line.quantity + 1 }
-					: line,
-			);
-		});
-	}
-
-	function handleRemoveFromCart(productId: string) {
-		setCartLines((currentLines) =>
-			currentLines.filter((line) => line.product.id !== productId),
-		);
-	}
-
-	function handleClearCart() {
-		setCartLines([]);
-	}
+	const { heroRef, isHeroVisible } = useHeroVisibility();
+	const {
+		cartOpen,
+		setCartOpen,
+		cartLines,
+		itemCount,
+		cartQuantities,
+		incrementCart,
+		decrementCart,
+		clearCart,
+	} = useCart();
 
 	return (
 		<LayoutGroup id='storefront-cart'>
@@ -138,11 +88,14 @@ export default function StorefrontExperience({
 				</AnimatePresence>
 
 				<StorefrontCatalogClient
-					products={products}
+					initialCatalogPage={catalogPage}
+					cartQuantities={cartQuantities}
 					coupons={coupons}
 					selectedCategory={selectedCategory}
 					selectedCoupon={selectedCoupon}
-					onAddToCart={handleAddToCart}
+					selectedSearch={selectedSearch}
+					onIncrement={incrementCart}
+					onDecrement={decrementCart}
 				/>
 
 				<StorefrontFooter />
@@ -151,9 +104,10 @@ export default function StorefrontExperience({
 			<CartSheet
 				lines={cartLines}
 				open={cartOpen}
-				onClear={handleClearCart}
+				onClear={clearCart}
 				onOpenChange={setCartOpen}
-				onRemove={handleRemoveFromCart}
+				onIncrement={incrementCart}
+				onDecrement={decrementCart}
 			/>
 		</LayoutGroup>
 	);

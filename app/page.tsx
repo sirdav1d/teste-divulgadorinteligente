@@ -1,25 +1,32 @@
 /** @format */
 
 import StorefrontClient from '@/components/storefront/storefront-client';
-import { getCoupons, getProducts, getProductsByCoupon } from '@/lib/api/divulgador';
-import { readSingleSearchParam } from '@/lib/storefront/search-params';
+import { getCatalogPage, getCoupons } from '@/lib/divulgador';
+import { readSingleSearchParam } from '@/helpers/url/read-single-search-param';
 
 export default async function HomePage(props: PageProps<'/'>) {
 	const resolvedSearchParams = await props.searchParams;
 	const selectedCoupon = readSingleSearchParam(resolvedSearchParams.coupon);
 	const selectedCategory = readSingleSearchParam(resolvedSearchParams.category);
-	const productsPromise = selectedCoupon
-		? getProductsByCoupon({ coupon: selectedCoupon })
-		: getProducts();
+	const selectedSearch = readSingleSearchParam(resolvedSearchParams.search);
+	const catalogPagePromise = getCatalogPage({
+		category: selectedCategory,
+		coupon: selectedCoupon,
+		search: selectedSearch,
+	});
 	const couponsPromise = getCoupons();
-	const [products, coupons] = await Promise.all([productsPromise, couponsPromise]);
+	const [catalogPage, coupons] = await Promise.all([
+		catalogPagePromise,
+		couponsPromise,
+	]);
 
 	return (
 		<StorefrontClient
-			products={products}
+			catalogPage={catalogPage}
 			coupons={coupons}
 			selectedCategory={selectedCategory}
 			selectedCoupon={selectedCoupon}
+			selectedSearch={selectedSearch}
 		/>
 	);
 }

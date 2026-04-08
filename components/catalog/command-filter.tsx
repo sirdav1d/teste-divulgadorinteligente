@@ -3,7 +3,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
 
 import { ChevronsUpDownIcon } from 'lucide-react';
 
@@ -18,6 +17,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCommandFilter } from '@/hooks/catalog/use-command-filter';
 
 export type CommandFilterOption = {
 	value: string;
@@ -50,33 +50,15 @@ export default function CommandFilter({
 	icon,
 	onValueChange,
 }: CommandFilterProps) {
-	const [open, setOpen] = useState(false);
-	const [containerElement, setContainerElement] = useState<HTMLDivElement | null>(null);
-	const inputRef = useRef<HTMLInputElement>(null);
+	const {
+		open,
+		setOpen,
+		containerElement,
+		inputRef,
+		handleContainerRef,
+		handleSelect,
+	} = useCommandFilter({ onValueChange });
 	const selectedOption = options.find((option) => option.value === selectedValue);
-
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-
-		const frameId = window.requestAnimationFrame(() => {
-			inputRef.current?.focus({ preventScroll: true });
-		});
-
-		return () => {
-			window.cancelAnimationFrame(frameId);
-		};
-	}, [open]);
-
-	function handleContainerRef(node: HTMLDivElement | null) {
-		setContainerElement(node);
-	}
-
-	function handleSelect(nextValue: string) {
-		onValueChange(nextValue);
-		setOpen(false);
-	}
 
 	return (
 		<div

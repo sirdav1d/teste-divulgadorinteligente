@@ -3,9 +3,15 @@
 
 'use client';
 
-import { Trash2Icon } from 'lucide-react';
-
+import CartQuantityControl from '@/components/cart/cart-quantity-control';
+import {
+	formatLineTotal,
+	formatLineUnitPrice,
+	formatTotal,
+	hasNumericPrice,
+} from '@/helpers/cart/line-pricing';
 import { Button } from '@/components/ui/button';
+import { Empty, EmptyDescription, EmptyHeader } from '@/components/ui/empty';
 import {
 	Sheet,
 	SheetContent,
@@ -14,7 +20,8 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from '@/components/ui/sheet';
-import type { Product } from '@/lib/types/divulgador';
+import type { Product } from '@/types/divulgador';
+import { Trash2 } from 'lucide-react';
 
 type CartLine = {
 	product: Product;
@@ -26,29 +33,17 @@ type CartSheetProps = {
 	open: boolean;
 	onClear: () => void;
 	onOpenChange: (open: boolean) => void;
-	onRemove: (productId: string) => void;
+	onIncrement: (product: Product) => void;
+	onDecrement: (productId: string) => void;
 };
-
-const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-	style: 'currency',
-	currency: 'BRL',
-});
-
-function formatTotal(lines: readonly CartLine[]) {
-	const total = lines.reduce(
-		(sum, line) => sum + (line.product.priceValue ?? 0) * line.quantity,
-		0,
-	);
-
-	return currencyFormatter.format(total);
-}
 
 export default function CartSheet({
 	lines,
 	open,
 	onClear,
 	onOpenChange,
-	onRemove,
+	onIncrement,
+	onDecrement,
 }: CartSheetProps) {
 	const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0);
 	const hasItems = lines.length > 0;
@@ -75,8 +70,8 @@ export default function CartSheet({
 							{lines.map((line) => (
 								<article
 									key={line.product.id}
-									className='flex gap-3 rounded-2xl border border-border-soft bg-background p-3'>
-									<div className='relative size-20 shrink-0 overflow-hidden rounded-xl bg-white'>
+									className='flex items-stretch gap-3 rounded-2xl border border-border-soft bg-background p-3'>
+									<div className='relative min-h-20 w-20 shrink-0 self-stretch overflow-hidden rounded-xl bg-white'>
 										{line.product.imageUrl ? (
 											<img
 												alt={line.product.title}
@@ -92,50 +87,60 @@ export default function CartSheet({
 									</div>
 
 									<div className='min-w-0 flex-1'>
-										<div className='flex items-start justify-between gap-3'>
-											<div className='min-w-0 space-y-1'>
-												<h3 className='line-clamp-2 text-sm font-semibold text-foreground'>
-													{line.product.title}
-												</h3>
-												<p className='text-xs uppercase tracking-[0.18em] text-foreground-muted'>
-													{line.product.seller}
-												</p>
-											</div>
-											<Button
-												type='button'
-												variant='ghost'
-												size='icon-sm'
-												aria-label={`Remover ${line.product.title} do carrinho`}
-												onClick={() => onRemove(line.product.id)}
-												className='shrink-0 text-foreground-muted hover:text-foreground'>
-												<Trash2Icon className='size-4' />
-											</Button>
+										<div className='min-w-0 space-y-1'>
+											<h3 className='line-clamp-2 text-sm font-semibold text-foreground'>
+												{line.product.title}
+											</h3>
+											<p className='text-xs uppercase tracking-[0.18em] text-foreground-muted'>
+												{line.product.seller}
+											</p>
 										</div>
 
-										<div className='mt-3 flex items-center justify-between gap-3'>
-											<div className='flex items-center gap-2'>
-												<span className='inline-flex rounded-full bg-brand-accent-soft px-2.5 py-1 text-xs font-semibold text-brand-primary-strong'>
-													x{line.quantity}
-												</span>
+										<div className='mt-3 flex items-end justify-between gap-3'>
+											<div className='min-w-0 space-y-3'>
 												{line.product.couponCode ? (
 													<span className='text-xs text-foreground-muted'>
 														Cupom {line.product.couponCode}
 													</span>
 												) : null}
+												<CartQuantityControl
+													productTitle={line.product.title}
+													quantity={line.quantity}
+													onIncrement={() => onIncrement(line.product)}
+													onDecrement={() => onDecrement(line.product.id)}
+													variant='sheet'
+												/>
 											</div>
-											<p className='text-sm font-semibold text-foreground'>
-												{line.product.priceLabel ?? 'Consulte o preço'}
-											</p>
+											<div className='shrink-0 text-right'>
+												{hasNumericPrice(line) ? (
+													<>
+														<p className='text-[11px] text-foreground-muted tabular-nums'>
+															{line.quantity} x {formatLineUnitPrice(line)}
+														</p>
+														<p className='text-base font-semibold text-foreground tabular-nums sm:text-lg'>
+															{formatLineTotal(line)}
+														</p>
+													</>
+												) : (
+													<p className='text-sm font-semibold text-foreground'>
+														{line.product.priceLabel ?? 'Consulte o preço'}
+													</p>
+												)}
+											</div>
 										</div>
 									</div>
 								</article>
 							))}
 						</div>
 					) : (
-						<div className='flex min-h-60 items-center justify-center rounded-3xl border border-dashed border-border-soft bg-background px-6 text-center text-sm leading-7 text-foreground-muted'>
-							O carrinho ainda está vazio. Escolha produtos na vitrine para ver
-							eles aqui.
-						</div>
+						<Empty className='min-h-60 px-6 py-0'>
+							<EmptyHeader>
+								<EmptyDescription className='mt-0 text-pretty text-sm leading-7'>
+									O carrinho ainda está vazio, escolha suas ofertas para fechar
+									o pedido
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
 					)}
 				</div>
 
@@ -143,17 +148,18 @@ export default function CartSheet({
 					<div className='flex items-center justify-between gap-3'>
 						<div>
 							<p className='text-xs uppercase tracking-[0.18em] text-foreground-muted'>
-								Subtotal estimado
+								Subtotal
 							</p>
 							<p className='text-lg font-semibold text-foreground'>
-								{hasItems ? formatTotal(lines) : 'R$ 0,00'}
+								{hasItems ? formatTotal(lines) : 'R$\u00a00,00'}
 							</p>
 						</div>
 						<Button
 							type='button'
-							variant='ghost'
+							variant='destructive'
 							onClick={onClear}
 							disabled={!hasItems}>
+							<Trash2 />
 							Limpar
 						</Button>
 					</div>

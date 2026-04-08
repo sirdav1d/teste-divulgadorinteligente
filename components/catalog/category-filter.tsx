@@ -4,7 +4,7 @@
 
 import { LayoutGridIcon } from 'lucide-react';
 
-import type { CategoryOption } from '@/lib/storefront/category-filters';
+import type { CategoryOption } from '@/helpers/storefront/category-filters';
 
 import CommandFilter from './command-filter';
 

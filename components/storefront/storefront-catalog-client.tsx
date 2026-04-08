@@ -2,17 +2,9 @@
 
 'use client';
 
-import { startTransition, useDeferredValue, useEffect, useState, useTransition } from 'react';
-
-import { usePathname, useRouter } from 'next/navigation';
-
-import {
-	ALL_CATEGORY_VALUE,
-	buildCategoryOptions,
-	filterProducts,
-} from '@/lib/storefront/category-filters';
-import { buildCouponOptions } from '@/lib/storefront/coupon-filters';
-import type { Coupon, Product } from '@/lib/types/divulgador';
+import type { CatalogPageResult } from '@/types/catalog';
+import type { Coupon, Product } from '@/types/divulgador';
+import { useStorefrontCatalog } from '@/hooks/storefront/use-storefront-catalog';
 
 import CategoryFilter from '../catalog/category-filter';
 import CouponFilter from '../catalog/coupon-filter';
@@ -21,79 +13,48 @@ import SearchBox from '../catalog/search-box';
 import EmptyState from '../shared/empty-state';
 
 type StorefrontCatalogClientProps = {
-	products: readonly Product[];
+	initialCatalogPage: CatalogPageResult;
 	coupons: readonly Coupon[];
-	onAddToCart: (product: Product) => void;
+	cartQuantities: Readonly<Record<string, number>>;
+	onIncrement: (product: Product) => void;
+	onDecrement: (productId: string) => void;
 	selectedCategory: string | null;
 	selectedCoupon: string | null;
+	selectedSearch: string | null;
 };
 
-const PAGE_SIZE = 12;
-
 export default function StorefrontCatalogClient({
-	products,
+	initialCatalogPage,
 	coupons,
-	onAddToCart,
+	cartQuantities,
+	onIncrement,
+	onDecrement,
 	selectedCategory,
 	selectedCoupon,
+	selectedSearch,
 }: StorefrontCatalogClientProps) {
-	const [isCouponPending, setIsCouponPending] = useState(false);
-	const [isCategoryPending, startCategoryTransition] = useTransition();
-	const pathname = usePathname();
-	const router = useRouter();
-	const [searchQuery, setSearchQuery] = useState('');
-	const committedCategory = selectedCategory ?? ALL_CATEGORY_VALUE;
-	const [selectedCategoryValue, setSelectedCategoryValue] = useState(committedCategory);
-	const [visibleCount, setVisibleCount] = useState(() => PAGE_SIZE);
-	const deferredSearchQuery = useDeferredValue(searchQuery);
-	const availableCategories = buildCategoryOptions(products);
-	const availableCoupons = buildCouponOptions(coupons);
-	const filteredProducts = filterProducts({
-		products,
-		searchQuery: deferredSearchQuery,
-		selectedCategory: selectedCategoryValue,
+	const {
+		searchQuery,
+		selectedCategoryValue,
+		selectedCouponValue,
+		loadedProducts,
+		hasMoreProducts,
+		isRefreshingCatalog,
+		isLoadingMore,
+		availableCategories,
+		availableCoupons,
+		shouldShowGrid,
+		setSearchQuery,
+		setSelectedCategoryValue,
+		setSelectedCouponValue,
+		handleLoadMore,
+	} = useStorefrontCatalog({
+		initialCatalogPage,
+		coupons,
+		selectedCategory,
+		selectedCoupon,
+		selectedSearch,
 	});
-	const isFilterPending = isCouponPending || isCategoryPending;
-	const visibleProducts = filteredProducts.slice(0, visibleCount);
-	const hasMoreProducts = filteredProducts.length > visibleCount;
-
-	useEffect(() => {
-		setSelectedCategoryValue(committedCategory);
-	}, [committedCategory]);
-
-	useEffect(() => {
-		setVisibleCount(PAGE_SIZE);
-	}, [committedCategory, selectedCoupon]);
-
-	function handleSearchChange(value: string) {
-		setSearchQuery(value);
-		setVisibleCount(PAGE_SIZE);
-	}
-
-	function handleCategoryChange(value: string) {
-		setSelectedCategoryValue(value);
-		setVisibleCount(PAGE_SIZE);
-
-		startCategoryTransition(() => {
-			const searchParams = new URLSearchParams(window.location.search);
-
-			if (value === ALL_CATEGORY_VALUE) {
-				searchParams.delete('category');
-			} else {
-				searchParams.set('category', value);
-			}
-
-			const query = searchParams.toString();
-			const href = query ? `${pathname}?${query}#catalogo` : `${pathname}#catalogo`;
-			router.replace(href, { scroll: false });
-		});
-	}
-
-	function handleLoadMore() {
-		startTransition(() => {
-			setVisibleCount((count) => count + PAGE_SIZE);
-		});
-	}
 
 	return (
 		<div className='relative mx-auto w-full max-w-368 px-4 py-4 sm:px-6 lg:px-8 xl:px-10'>
@@ -101,25 +62,26 @@ export default function StorefrontCatalogClient({
 				<div
 					id='catalogo'
 					className='flex flex-col items-center gap-5 px-1 pt-1 sm:gap-6'>
-					<div className='grid w-full max-w-6xl gap-3 lg:grid-cols-4 lg:items-stretch'>
+					<div className='grid w-full gap-3 lg:grid-cols-4 lg:items-stretch'>
 						<SearchBox
 							className='lg:col-span-2'
 							value={searchQuery}
-							onValueChange={handleSearchChange}
+							onValueChange={setSearchQuery}
 						/>
 						<div className='lg:h-16'>
 							<CouponFilter
-								onPendingChange={setIsCouponPending}
+								isPending={isRefreshingCatalog}
 								options={availableCoupons}
-								selectedValue={selectedCoupon}
+								selectedValue={selectedCouponValue}
+								onValueChange={setSelectedCouponValue}
 							/>
 						</div>
 						<div className='lg:h-16'>
 							<CategoryFilter
-								isPending={isCategoryPending}
+								isPending={isRefreshingCatalog}
 								options={availableCategories}
 								selectedValue={selectedCategoryValue}
-								onValueChange={handleCategoryChange}
+								onValueChange={setSelectedCategoryValue}
 							/>
 						</div>
 					</div>
@@ -127,12 +89,15 @@ export default function StorefrontCatalogClient({
 			</div>
 
 			<section className='mt-6 space-y-6 xl:mt-8 xl:space-y-8'>
-				{filteredProducts.length > 0 ? (
+				{shouldShowGrid ? (
 					<ProductGrid
-						isPending={isFilterPending}
-						onAddToCart={onAddToCart}
-						products={visibleProducts}
-						totalCount={filteredProducts.length}
+						cartQuantities={cartQuantities}
+						hasMoreProducts={hasMoreProducts}
+						isPending={isRefreshingCatalog}
+						isLoadingMore={isLoadingMore}
+						onIncrement={onIncrement}
+						onDecrement={onDecrement}
+						products={loadedProducts}
 						onLoadMore={hasMoreProducts ? handleLoadMore : undefined}
 					/>
 				) : (
