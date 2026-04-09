@@ -4,7 +4,8 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import StorefrontClient from '../../components/storefront/storefront-client';
+import StorefrontExperience from '../../components/storefront/storefront-experience';
+import { resetCartStore } from '../../stores/storefront/cart-store';
 import type { CatalogPageResult } from '../../types/catalog';
 import type { Coupon, Product } from '../../types/divulgador';
 
@@ -224,7 +225,7 @@ function renderStorefront({
 
 	act(() => {
 		root.render(
-			<StorefrontClient
+			<StorefrontExperience
 				catalogPage={buildCatalogPage({
 					category: selectedCategory,
 					coupon: selectedCoupon,
@@ -250,6 +251,7 @@ function renderStorefront({
 }
 
 beforeEach(() => {
+	resetCartStore();
 	replaceMock.mockReset();
 	fetchMock.mockReset();
 	window.history.replaceState(null, '', '/');
@@ -286,6 +288,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	resetCartStore();
 	replaceStateSpy.mockRestore();
 	vi.clearAllMocks();
 	vi.unstubAllGlobals();
@@ -308,9 +311,7 @@ describe('StorefrontClient', () => {
 		expect(filterGrid).not.toBeNull();
 		expect(filterGrid!.className).toContain('w-full');
 		expect(filterGrid!.className).not.toContain('max-w-6xl');
-		expect(view.container.textContent).toContain(
-			'Ofertas em movimento, com acabamento premium.',
-		);
+		expect(view.container.textContent).toContain('Divulgue.Venda.Cresça.');
 		expect(view.container.textContent).not.toContain('Busca local');
 		expect(view.container.textContent).not.toContain('Buscar na vitrine');
 		expect(view.container.textContent).not.toContain(
@@ -333,7 +334,7 @@ describe('StorefrontClient', () => {
 		);
 		expect(view.container.textContent).toContain('Ver mais');
 		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
-		expect(view.container.innerHTML).toContain('mx-auto w-full max-w-[92rem]');
+		expect(view.container.innerHTML).toContain('mx-auto w-full max-w-368');
 		expect(view.container.innerHTML).toContain('sticky top-0 z-30');
 		expect(view.container.innerHTML).not.toContain('bg-surface-glass');
 
@@ -461,6 +462,13 @@ describe('StorefrontClient', () => {
 			await Promise.resolve();
 		});
 
+		const loadMoreRequest = new URL(
+			fetchMock.mock.calls.at(-1)![0] as string,
+			'http://localhost',
+		);
+
+		expect(loadMoreRequest.searchParams.get('offset')).toBe('20');
+		expect(loadMoreRequest.searchParams.get('includeCategories')).toBe('0');
 		expect(view.container.textContent).toContain('Notebook gamer Nitro 5');
 
 		await act(async () => {
@@ -486,6 +494,58 @@ describe('StorefrontClient', () => {
 		);
 
 		view.cleanup();
+	});
+
+	it('uses instant scrolling after load more when reduced motion is enabled', async () => {
+		const matchMediaMock = vi.fn((query: string) => ({
+			matches: query === '(prefers-reduced-motion: reduce)',
+			media: query,
+			onchange: null,
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		}));
+		const scrollIntoViewSpy = vi.spyOn(HTMLElement.prototype, 'scrollIntoView');
+		const requestAnimationFrameSpy = vi
+			.spyOn(window, 'requestAnimationFrame')
+			.mockImplementation((callback: FrameRequestCallback) => {
+				callback(0);
+				return 1;
+			});
+
+		vi.stubGlobal('matchMedia', matchMediaMock);
+
+		const view = renderStorefront();
+
+		try {
+			const loadMoreButton = [...view.container.querySelectorAll('button')].find(
+				(button) => button.textContent?.includes('Ver mais'),
+			);
+
+			expect(loadMoreButton).not.toBeUndefined();
+
+			await act(async () => {
+				loadMoreButton!.dispatchEvent(
+					new MouseEvent('click', { bubbles: true }),
+				);
+				await Promise.resolve();
+				await Promise.resolve();
+			});
+
+			expect(matchMediaMock).toHaveBeenCalledWith(
+				'(prefers-reduced-motion: reduce)',
+			);
+			expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+				behavior: 'auto',
+				block: 'start',
+			});
+		} finally {
+			requestAnimationFrameSpy.mockRestore();
+			scrollIntoViewSpy.mockRestore();
+			view.cleanup();
+		}
 	});
 
 	it('syncs the url with native history when the user selects a coupon from the command list', () => {
@@ -554,6 +614,146 @@ describe('StorefrontClient', () => {
 		);
 		expect(window.location.search).toBe('?category=others');
 		expect(window.location.hash).toBe('#catalogo');
+
+		view.cleanup();
+	});
+
+	it('reuses loaded category options when only the selected category changes', async () => {
+		const view = renderStorefront();
+		const categoryButton = [...view.container.querySelectorAll('button')].find(
+			(button) => button.textContent?.includes('Categorias'),
+		);
+
+		expect(categoryButton).not.toBeUndefined();
+
+		await act(async () => {
+			categoryButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+		});
+
+		const categoryOption = [
+			...document.querySelectorAll("[data-slot='command-item']"),
+		].find((node) => node.textContent?.includes('Office'));
+
+		expect(categoryOption).not.toBeUndefined();
+
+		await act(async () => {
+			categoryOption!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		const categoryRefreshRequest = new URL(
+			fetchMock.mock.calls.at(-1)![0] as string,
+			'http://localhost',
+		);
+
+		expect(categoryRefreshRequest.searchParams.get('category')).toBe('office');
+		expect(categoryRefreshRequest.searchParams.get('includeCategories')).toBe(
+			'0',
+		);
+
+		view.cleanup();
+	});
+
+	it('aborts stale catalog refreshes when filters change in quick succession', async () => {
+		const pendingRequests: AbortSignal[] = [];
+		const resolvers: Array<(value: { ok: boolean; json: () => Promise<CatalogPageResult> }) => void> =
+			[];
+
+		fetchMock.mockImplementation(
+			(input: string | URL | Request, init?: RequestInit) => {
+			const requestUrl =
+				typeof input === 'string'
+					? input
+					: input instanceof URL
+						? input.toString()
+						: input.url;
+
+			if (new URL(requestUrl, 'http://localhost').pathname !== '/api/catalog') {
+				throw new Error(`Unexpected fetch target: ${requestUrl}`);
+			}
+
+			const signal = init?.signal;
+
+			if (!signal) {
+				throw new Error('Expected catalog refreshes to send an AbortSignal');
+			}
+
+			pendingRequests.push(signal);
+
+			return new Promise((resolve, reject) => {
+				resolvers.push(resolve);
+				signal.addEventListener(
+					'abort',
+					() => {
+						reject(new DOMException('The operation was aborted.', 'AbortError'));
+					},
+					{ once: true },
+				);
+			});
+			},
+		);
+
+		const view = renderStorefront();
+		const couponButton = [...view.container.querySelectorAll('button')].find(
+			(button) => button.textContent?.includes('Cupons'),
+		);
+		const categoryButton = [...view.container.querySelectorAll('button')].find(
+			(button) => button.textContent?.includes('Categorias'),
+		);
+
+		expect(couponButton).not.toBeUndefined();
+		expect(categoryButton).not.toBeUndefined();
+
+		await act(async () => {
+			couponButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+		});
+
+		const couponOption = [
+			...document.querySelectorAll("[data-slot='command-item']"),
+		].find((node) => node.textContent?.includes('AGORAVAI'));
+
+		expect(couponOption).not.toBeUndefined();
+
+		await act(async () => {
+			couponOption!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+
+		expect(pendingRequests).toHaveLength(1);
+		expect(pendingRequests[0]!.aborted).toBe(false);
+
+		await act(async () => {
+			categoryButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+		});
+
+		const categoryOption = [
+			...document.querySelectorAll("[data-slot='command-item']"),
+		].find((node) => node.textContent?.includes('Outros'));
+
+		expect(categoryOption).not.toBeUndefined();
+
+		await act(async () => {
+			categoryOption!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+		});
+
+		expect(pendingRequests).toHaveLength(2);
+		expect(pendingRequests[0]!.aborted).toBe(true);
+		expect(pendingRequests[1]!.aborted).toBe(false);
+
+		await act(async () => {
+			resolvers[1]!({
+				ok: true,
+				json: async () => buildCatalogPage(),
+			});
+			await Promise.resolve();
+			await Promise.resolve();
+		});
 
 		view.cleanup();
 	});

@@ -69,6 +69,7 @@ export default function ProductGrid({
 	return (
 		<section
 			aria-label='Produtos visíveis'
+			aria-busy={isPending || isLoadingMore}
 			className='space-y-6'>
 			<div className='flex flex-col gap-3 border-b border-border-soft pb-5 sm:flex-row sm:items-end sm:justify-between'>
 				<div>
@@ -76,7 +77,11 @@ export default function ProductGrid({
 						Suas ofertas
 					</h2>
 				</div>
-				<p className='text-sm leading-7 text-foreground-muted'>
+				<p
+					role='status'
+					aria-live='polite'
+					aria-atomic='true'
+					className='text-sm leading-7 text-foreground-muted'>
 					{resultLabel}
 				</p>
 			</div>

@@ -43,6 +43,8 @@ export default function CartQuantityControl({
 
 			<span
 				data-slot='cart-quantity-value'
+				aria-live='polite'
+				aria-atomic='true'
 				className='min-w-8 text-center text-sm font-semibold tabular-nums text-foreground'>
 				{quantity}
 			</span>

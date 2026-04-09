@@ -18,13 +18,19 @@ export default function CartTrigger({
 	onClick,
 	variant = 'floating',
 }: CartTriggerProps) {
+	const ariaLabel =
+		itemCount > 0
+			? `Abrir carrinho com ${itemCount} item${itemCount > 1 ? 's' : ''}`
+			: 'Abrir carrinho';
+
 	return (
 		<div className='pointer-events-auto'>
 			<Button
 				type='button'
 				variant='outline'
 				size='icon-lg'
-				aria-label='Abrir carrinho'
+				aria-haspopup='dialog'
+				aria-label={ariaLabel}
 				onClick={onClick}
 				className={cn(
 					'relative size-11 rounded-full border text-sm font-semibold shadow-(--shadow-soft) backdrop-blur-md',

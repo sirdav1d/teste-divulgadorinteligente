@@ -1,6 +1,6 @@
 /** @format */
 
-import StorefrontClient from '@/components/storefront/storefront-client';
+import StorefrontExperience from '@/components/storefront/storefront-experience';
 import { getCatalogPage, getCoupons } from '@/lib/divulgador';
 import { readSingleSearchParam } from '@/helpers/url/read-single-search-param';
 
@@ -21,7 +21,7 @@ export default async function HomePage(props: PageProps<'/'>) {
 	]);
 
 	return (
-		<StorefrontClient
+		<StorefrontExperience
 			catalogPage={catalogPage}
 			coupons={coupons}
 			selectedCategory={selectedCategory}

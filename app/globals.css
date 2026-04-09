@@ -1,11 +1,13 @@
 /** @format */
 
+/* Global imports */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
+/* Design tokens */
 :root {
 	--surface: #fcfbf8;
 	--surface-muted: #f0ede5;
@@ -94,6 +96,7 @@
 	--sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Tailwind theme bindings */
 @theme inline {
 	--color-background: var(--background);
 	--color-surface: var(--surface);
@@ -162,6 +165,7 @@
 	--radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Document defaults */
 * {
 	box-sizing: border-box;
 }
@@ -227,6 +231,7 @@ select {
 	color: var(--foreground);
 }
 
+/* App-level utilities */
 .storefront-hero-sheen {
 	background-image: var(--hero-sheen);
 }
@@ -235,6 +240,7 @@ select {
 	background-image: var(--hero-lights);
 }
 
+/* Optional dark tokens */
 .dark {
 	--background: oklch(0.145 0 0);
 	--foreground: oklch(0.985 0 0);
@@ -269,6 +275,7 @@ select {
 	--sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Tailwind base bridge */
 @layer base {
 	* {
 		@apply border-border outline-ring/50;

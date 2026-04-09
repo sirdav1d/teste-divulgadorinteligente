@@ -69,6 +69,8 @@ export default function CommandFilter({
 				onOpenChange={setOpen}>
 				<PopoverTrigger
 					aria-busy={isPending}
+					aria-expanded={open}
+					aria-haspopup='dialog'
 					aria-label={label}
 					className='flex h-full w-full items-center justify-between gap-4 rounded-md border border-border-soft bg-surface px-5 py-4 text-left shadow-(--shadow-soft) transition hover:border-brand-primary-strong hover:bg-surface-elevated sm:px-6'>
 					<span className='flex min-w-0 items-center gap-3'>
@@ -103,6 +105,7 @@ export default function CommandFilter({
 					<Command className='rounded-md bg-surface p-0 text-foreground'>
 						<CommandInput
 							ref={inputRef}
+							aria-label={`${label}: ${searchPlaceholder}`}
 							placeholder={searchPlaceholder}
 							className='h-10 text-foreground placeholder:text-foreground-muted'
 						/>

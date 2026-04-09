@@ -100,7 +100,7 @@ const StorefrontHeader = forwardRef<HTMLElement, StorefrontHeaderProps>(
 									initial='hidden'
 									animate='visible'
 									variants={heroTitleVariants}
-									className='mt-6 flex flex-col gap-2 font-hero-display text-5xl leading-[0.92] tracking-[-0.06em] text-text-on-hero sm:gap-3 sm:text-6xl lg:text-9xl'>
+									className='mt-6 flex flex-col gap-2 font-hero-display text-5xl leading-[0.92] tracking-[.02em] text-text-on-hero sm:gap-3 sm:text-6xl lg:text-9xl'>
 									<motion.span
 										variants={heroWordVariants}
 										className='w-fit'>
@@ -114,7 +114,7 @@ const StorefrontHeader = forwardRef<HTMLElement, StorefrontHeaderProps>(
 									<motion.span
 										variants={heroWordVariants}
 										className='w-fit self-end'>
-										{'Cres\u00e7a.'}
+										Cresça.
 									</motion.span>
 								</motion.h1>
 							</div>

@@ -27,7 +27,16 @@ function listFilesSorted(root: string) {
 
 describe('helpers architecture', () => {
 	it('keeps lib restricted to api and type contracts', () => {
-		expect(listFilesSorted(libRoot)).toEqual(['divulgador.ts']);
+		expect(listFilesSorted(libRoot)).toEqual([
+			'divulgador.ts',
+			'divulgador/cache-policy.ts',
+			'divulgador/catalog.ts',
+			'divulgador/coupons.ts',
+			'divulgador/products.ts',
+			'divulgador/query.ts',
+			'divulgador/request.ts',
+			'divulgador/scan.ts',
+		]);
 		expect(existsSync(join(typesRoot, 'divulgador.ts'))).toBe(true);
 	});
 
@@ -113,13 +122,25 @@ describe('helpers architecture', () => {
 	});
 
 	it('imports shared production types from the root types directory', () => {
-		const apiSource = readFileSync(
-			join(projectRoot, 'lib/divulgador.ts'),
+		const catalogSource = readFileSync(
+			join(projectRoot, 'lib/divulgador/catalog.ts'),
+			'utf8',
+		);
+		const couponsSource = readFileSync(
+			join(projectRoot, 'lib/divulgador/coupons.ts'),
+			'utf8',
+		);
+		const productsSource = readFileSync(
+			join(projectRoot, 'lib/divulgador/products.ts'),
 			'utf8',
 		);
 
-		expect(apiSource).toContain("from '@/types/divulgador'");
-		expect(apiSource).not.toContain('lib/types');
+		expect(catalogSource).toContain("from '@/types/divulgador'");
+		expect(couponsSource).toContain("from '@/types/divulgador'");
+		expect(productsSource).toContain("from '@/types/divulgador'");
+		expect(catalogSource).not.toContain('lib/types');
+		expect(couponsSource).not.toContain('lib/types');
+		expect(productsSource).not.toContain('lib/types');
 	});
 
 	it('stores custom hooks under the root hooks directory', () => {
@@ -127,6 +148,12 @@ describe('helpers architecture', () => {
 			true,
 		);
 		expect(existsSync(join(hooksRoot, 'storefront/use-cart.ts'))).toBe(true);
+		expect(
+			existsSync(join(hooksRoot, 'storefront/storefront-catalog-request.ts')),
+		).toBe(true);
+		expect(
+			existsSync(join(hooksRoot, 'storefront/storefront-catalog-state.ts')),
+		).toBe(true);
 		expect(existsSync(join(hooksRoot, 'storefront/use-hero-visibility.ts'))).toBe(
 			true,
 		);
@@ -139,6 +166,14 @@ describe('helpers architecture', () => {
 			join(projectRoot, 'components/storefront/storefront-catalog-client.tsx'),
 			'utf8',
 		);
+		const storefrontCatalogHookSource = readFileSync(
+			join(projectRoot, 'hooks/storefront/use-storefront-catalog.ts'),
+			'utf8',
+		);
+		const cartHookSource = readFileSync(
+			join(projectRoot, 'hooks/storefront/use-cart.ts'),
+			'utf8',
+		);
 		const storefrontExperienceSource = readFileSync(
 			join(projectRoot, 'components/storefront/storefront-experience.tsx'),
 			'utf8',
@@ -148,13 +183,25 @@ describe('helpers architecture', () => {
 			'utf8',
 		);
 		const errorPageSource = readFileSync(join(projectRoot, 'app/error.tsx'), 'utf8');
+		const globalErrorPageSource = readFileSync(
+			join(projectRoot, 'app/global-error.tsx'),
+			'utf8',
+		);
 
 		expect(storefrontCatalogSource).not.toContain('function refreshCatalog');
 		expect(storefrontCatalogSource).not.toContain('function handleLoadMore');
+		expect(storefrontCatalogHookSource).not.toContain('function buildCatalogHref');
+		expect(storefrontCatalogHookSource).not.toContain(
+			'function buildCatalogRequestUrl',
+		);
+		expect(storefrontCatalogHookSource).not.toContain('function appendProducts');
+		expect(storefrontCatalogHookSource).not.toContain('function fetchCatalogPage');
+		expect(cartHookSource).not.toContain('useMemo');
 		expect(storefrontExperienceSource).not.toContain('function handleIncrementCart');
 		expect(storefrontExperienceSource).not.toContain('new IntersectionObserver');
 		expect(commandFilterSource).not.toContain('requestAnimationFrame');
 		expect(commandFilterSource).not.toContain('setContainerElement');
 		expect(errorPageSource).not.toContain('console.error(error)');
+		expect(globalErrorPageSource).not.toContain('console.error(error)');
 	});
 });

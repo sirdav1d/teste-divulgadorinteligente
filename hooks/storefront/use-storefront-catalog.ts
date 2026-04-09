@@ -15,13 +15,17 @@ import type {
 	CatalogCategoryOption,
 	CatalogPageResult,
 } from '@/types/catalog';
-import type { Coupon, Product } from '@/types/divulgador';
+import type { Coupon } from '@/types/divulgador';
 
-type CatalogFilterState = {
-	category: string;
-	coupon: string;
-	search: string;
-};
+import {
+	buildCatalogHref,
+	fetchCatalogPage,
+	isAbortError,
+	normalizeSearchValue,
+	shouldIncludeCategoriesOnRefresh,
+	type CatalogFilterState,
+} from './storefront-catalog-request';
+import { appendProducts, sameFilters } from './storefront-catalog-state';
 
 type UseStorefrontCatalogOptions = {
 	initialCatalogPage: CatalogPageResult;
@@ -31,84 +35,15 @@ type UseStorefrontCatalogOptions = {
 	selectedSearch: string | null;
 };
 
-function normalizeSearchValue(search: string | null) {
-	return search?.trim() ?? '';
-}
-
-function buildCatalogHref(pathname: string, filters: CatalogFilterState) {
-	const searchParams = new URLSearchParams();
-
-	if (filters.search) {
-		searchParams.set('search', filters.search);
+function getCatalogScrollBehavior(): ScrollBehavior {
+	if (
+		typeof window.matchMedia === 'function' &&
+		window.matchMedia('(prefers-reduced-motion: reduce)').matches
+	) {
+		return 'auto';
 	}
 
-	if (filters.coupon !== ALL_COUPON_VALUE) {
-		searchParams.set('coupon', filters.coupon);
-	}
-
-	if (filters.category !== ALL_CATEGORY_VALUE) {
-		searchParams.set('category', filters.category);
-	}
-
-	const query = searchParams.toString();
-
-	return query ? `${pathname}?${query}#catalogo` : `${pathname}#catalogo`;
-}
-
-function buildCatalogRequestUrl(offset: number, filters: CatalogFilterState) {
-	const url = new URL('/api/catalog', window.location.origin);
-
-	url.searchParams.set('offset', String(offset));
-
-	if (filters.search) {
-		url.searchParams.set('search', filters.search);
-	}
-
-	if (filters.coupon !== ALL_COUPON_VALUE) {
-		url.searchParams.set('coupon', filters.coupon);
-	}
-
-	if (filters.category !== ALL_CATEGORY_VALUE) {
-		url.searchParams.set('category', filters.category);
-	}
-
-	return url.toString();
-}
-
-function appendProducts(
-	currentProducts: readonly Product[],
-	nextProducts: readonly Product[],
-) {
-	const seen = new Set(currentProducts.map((product) => product.id));
-
-	return [
-		...currentProducts,
-		...nextProducts.filter((product) => !seen.has(product.id)),
-	];
-}
-
-function sameFilters(
-	left: CatalogFilterState,
-	right: CatalogFilterState,
-): boolean {
-	return (
-		left.category === right.category &&
-		left.coupon === right.coupon &&
-		left.search === right.search
-	);
-}
-
-async function fetchCatalogPage(
-	offset: number,
-	filters: CatalogFilterState,
-): Promise<CatalogPageResult> {
-	const response = await fetch(buildCatalogRequestUrl(offset, filters));
-
-	if (!response.ok) {
-		throw new Error(`Catalog request failed with status ${response.status}`);
-	}
-
-	return (await response.json()) as CatalogPageResult;
+	return 'smooth';
 }
 
 export function useStorefrontCatalog({
@@ -130,7 +65,7 @@ export function useStorefrontCatalog({
 	const [loadedProducts, setLoadedProducts] = useState(initialCatalogPage.products);
 	const [availableCategories, setAvailableCategories] = useState<
 		CatalogCategoryOption[]
-	>(initialCatalogPage.availableCategories);
+	>(initialCatalogPage.availableCategories ?? []);
 	const [hasMoreProducts, setHasMoreProducts] = useState(
 		initialCatalogPage.hasMore,
 	);
@@ -142,30 +77,91 @@ export function useStorefrontCatalog({
 		coupon: committedCoupon,
 		search: committedSearch,
 	});
+	const refreshAbortControllerRef = useRef<AbortController | null>(null);
+	const pendingScrollProductIdRef = useRef<string | null>(null);
 	const requestSequenceRef = useRef(0);
 
-	function refreshCatalog(nextFilters: CatalogFilterState) {
+	function refreshCatalog(
+		nextFilters: CatalogFilterState,
+		includeCategories: boolean,
+	) {
 		const requestId = ++requestSequenceRef.current;
+		refreshAbortControllerRef.current?.abort();
+		const abortController = new AbortController();
+		refreshAbortControllerRef.current = abortController;
+		pendingScrollProductIdRef.current = null;
 
 		setIsRefreshingCatalog(true);
 
-		void fetchCatalogPage(0, nextFilters)
+		void fetchCatalogPage(
+			0,
+			nextFilters,
+			includeCategories,
+			abortController.signal,
+		)
 			.then((catalogPage) => {
 				if (requestId !== requestSequenceRef.current) {
 					return;
 				}
 
 				setLoadedProducts(catalogPage.products);
-				setAvailableCategories(catalogPage.availableCategories);
+				if (catalogPage.availableCategories) {
+					setAvailableCategories(catalogPage.availableCategories);
+				}
 				setHasMoreProducts(catalogPage.hasMore);
 				setNextOffset(catalogPage.nextOffset);
 			})
+			.catch((error) => {
+				if (isAbortError(error)) {
+					return;
+				}
+
+				throw error;
+			})
 			.finally(() => {
 				if (requestId === requestSequenceRef.current) {
+					if (refreshAbortControllerRef.current === abortController) {
+						refreshAbortControllerRef.current = null;
+					}
 					setIsRefreshingCatalog(false);
 				}
 			});
 	}
+
+	useEffect(() => {
+		return () => {
+			refreshAbortControllerRef.current?.abort();
+		};
+	}, []);
+
+	useEffect(() => {
+		const targetProductId = pendingScrollProductIdRef.current;
+
+		if (!targetProductId) {
+			return;
+		}
+
+		const targetElement = document.querySelector<HTMLElement>(
+			`[data-product-id="${targetProductId}"]`,
+		);
+
+		if (!targetElement) {
+			return;
+		}
+
+		pendingScrollProductIdRef.current = null;
+
+		const animationFrameId = window.requestAnimationFrame(() => {
+			targetElement.scrollIntoView({
+				behavior: getCatalogScrollBehavior(),
+				block: 'start',
+			});
+		});
+
+		return () => {
+			window.cancelAnimationFrame(animationFrameId);
+		};
+	}, [loadedProducts]);
 
 	useEffect(() => {
 		const nextFilters = {
@@ -173,11 +169,16 @@ export function useStorefrontCatalog({
 			coupon: selectedCouponValue,
 			search: deferredSearchQuery.trim(),
 		};
+		const currentFilters = lastAppliedFiltersRef.current;
 
-		if (sameFilters(nextFilters, lastAppliedFiltersRef.current)) {
+		if (sameFilters(nextFilters, currentFilters)) {
 			return;
 		}
 
+		const includeCategories = shouldIncludeCategoriesOnRefresh(
+			currentFilters,
+			nextFilters,
+		);
 		lastAppliedFiltersRef.current = nextFilters;
 		window.history.replaceState(
 			null,
@@ -185,7 +186,7 @@ export function useStorefrontCatalog({
 			buildCatalogHref(pathname, nextFilters),
 		);
 		queueMicrotask(() => {
-			refreshCatalog(nextFilters);
+			refreshCatalog(nextFilters, includeCategories);
 		});
 	}, [deferredSearchQuery, pathname, selectedCategoryValue, selectedCouponValue]);
 
@@ -206,16 +207,23 @@ export function useStorefrontCatalog({
 
 		setIsLoadingMore(true);
 
-		void fetchCatalogPage(nextOffset, nextFilters)
+		void fetchCatalogPage(nextOffset, nextFilters, false)
 			.then((catalogPage) => {
 				if (requestId !== requestSequenceRef.current) {
 					return;
 				}
 
-				setLoadedProducts((currentProducts) =>
-					appendProducts(currentProducts, catalogPage.products),
-				);
-				setAvailableCategories(catalogPage.availableCategories);
+				setLoadedProducts((currentProducts) => {
+					const nextLoadedProducts = appendProducts(
+						currentProducts,
+						catalogPage.products,
+					);
+
+					pendingScrollProductIdRef.current =
+						nextLoadedProducts.firstAppendedProductId;
+
+					return nextLoadedProducts.products;
+				});
 				setHasMoreProducts(catalogPage.hasMore);
 				setNextOffset(catalogPage.nextOffset);
 			})

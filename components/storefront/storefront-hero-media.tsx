@@ -21,10 +21,7 @@ export default function StorefrontHeroMedia({
 	const boxShadow = useTransform(
 		revealProgress,
 		[0, 1],
-		[
-			'0 30px 110px rgba(7, 17, 38, 0.42)',
-			'0 0px 0px rgba(7, 17, 38, 0)',
-		],
+		['0 30px 110px rgba(7, 17, 38, 0.42)', '0 0px 0px rgba(7, 17, 38, 0)'],
 	);
 
 	return (

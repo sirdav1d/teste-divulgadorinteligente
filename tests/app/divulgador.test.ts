@@ -7,6 +7,8 @@ vi.mock('next/cache', () => ({
 	cacheTag: vi.fn(),
 }));
 
+import { cacheTag } from 'next/cache';
+
 import {
 	getCatalogPage,
 	getCoupons,
@@ -199,6 +201,32 @@ describe('divulgador data layer', () => {
 		expect(url.searchParams.get('category')).toBe('kitchen');
 	});
 
+	it('skips category aggregation work when the caller only needs the next page', async () => {
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				data: Array.from({ length: 20 }, (_, index) =>
+					createProductFixture(index + 21, {
+						category: 'kitchen',
+					}),
+				),
+			}),
+		});
+
+		const page = await getCatalogPage({
+			offset: 20,
+			pageSize: 20,
+			category: 'kitchen',
+			includeCategories: false,
+		});
+
+		expect(page.products).toHaveLength(20);
+		expect(page.hasMore).toBe(true);
+		expect(page.nextOffset).toBe(40);
+		expect(page.availableCategories).toBeUndefined();
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
 	it('keeps scanning remote pages until search finds matching products', async () => {
 		fetchMock
 			.mockResolvedValueOnce({
@@ -272,7 +300,7 @@ describe('divulgador data layer', () => {
 				count: 1,
 			},
 		]);
-		expect(fetchMock).toHaveBeenCalledTimes(4);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
 
 		const firstUrl = new URL(fetchMock.mock.calls[0]![0] as string);
 		const secondUrl = new URL(fetchMock.mock.calls[1]![0] as string);
@@ -353,17 +381,131 @@ describe('divulgador data layer', () => {
 			},
 		]);
 
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+
+		const firstUrl = new URL(fetchMock.mock.calls[0]![0] as string);
+
+		expect(firstUrl.searchParams.get('coupon')).toBe('AGORAVAI');
+		expect(firstUrl.searchParams.get('start')).toBe('0');
+		expect(firstUrl.searchParams.get('search')).toBeNull();
+	});
+
+	it('reuses the same remote scan to serve the others category and category options', async () => {
+		fetchMock
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					data: Array.from({ length: 20 }, (_, index) =>
+						createProductFixture(index + 1, {
+							title: `Oferta ${index + 1}`,
+							category: 'kitchen',
+						}),
+					),
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					data: [
+						createProductFixture(21, {
+							title: 'Oferta sem categoria',
+							category: null,
+						}),
+					],
+				}),
+			});
+
+		const page = await getCatalogPage({
+			category: 'others',
+			pageSize: 1,
+		});
+
+		expect(page.products).toHaveLength(1);
+		expect(page.products[0]?.title).toBe('Oferta sem categoria');
+		expect(page.availableCategories).toEqual([
+			{
+				value: 'all',
+				label: 'Todos',
+				count: 21,
+			},
+			{
+				value: 'kitchen',
+				label: 'Kitchen',
+				count: 20,
+			},
+			{
+				value: 'others',
+				label: 'Outros',
+				count: 1,
+			},
+		]);
 		expect(fetchMock).toHaveBeenCalledTimes(2);
 
 		const firstUrl = new URL(fetchMock.mock.calls[0]![0] as string);
 		const secondUrl = new URL(fetchMock.mock.calls[1]![0] as string);
 
-		expect(firstUrl.searchParams.get('coupon')).toBe('AGORAVAI');
-		expect(secondUrl.searchParams.get('coupon')).toBe('AGORAVAI');
+		expect(firstUrl.searchParams.get('category')).toBeNull();
+		expect(secondUrl.searchParams.get('category')).toBeNull();
 		expect(firstUrl.searchParams.get('start')).toBe('0');
-		expect(secondUrl.searchParams.get('start')).toBe('0');
-		expect(firstUrl.searchParams.get('search')).toBeNull();
-		expect(secondUrl.searchParams.get('search')).toBeNull();
+		expect(secondUrl.searchParams.get('start')).toBe('20');
+	});
+
+	it('applies granular cache tags to catalog pages and category aggregation', async () => {
+		fetchMock
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					data: [
+						createProductFixture(1, {
+							title: 'Oferta cozinha 1',
+							category: 'kitchen',
+							coupon: 'AGORAVAI',
+						}),
+					],
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					data: [
+						createProductFixture(1, {
+							title: 'Oferta cozinha 1',
+							category: 'kitchen',
+							coupon: 'AGORAVAI',
+						}),
+					],
+				}),
+			});
+
+		await getCatalogPage({
+			coupon: 'AGORAVAI',
+			search: 'cozinha',
+			pageSize: 1,
+		});
+
+		const appliedTags = vi.mocked(cacheTag).mock.calls.flat();
+
+		expect(appliedTags).toContain('catalog-page');
+		expect(appliedTags).toContain('catalog-page:coupon:AGORAVAI');
+		expect(appliedTags).toContain('catalog-page:search');
+		expect(appliedTags).toContain('catalog-products');
+		expect(appliedTags).toContain('catalog-products:coupon:AGORAVAI');
+		expect(appliedTags).not.toContain('catalog-categories');
+		expect(appliedTags).not.toContain('catalog-categories:coupon:AGORAVAI');
+	});
+
+	it('applies resource-specific cache tags to coupon reads', async () => {
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ data: [couponFixture] }),
+		});
+
+		await getCoupons();
+
+		const appliedTags = vi.mocked(cacheTag).mock.calls.flat();
+
+		expect(appliedTags).toContain('catalog-coupons');
+		expect(appliedTags).not.toContain('coupons');
 	});
 
 	it('fetches products and coupons from the public endpoints', async () => {

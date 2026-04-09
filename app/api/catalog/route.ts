@@ -1,36 +1,26 @@
 /** @format */
 
 import { getCatalogPage } from '@/lib/divulgador';
-
-function readQueryParam(
-	searchParams: URLSearchParams,
-	key: string,
-): string | null {
-	const value = searchParams.get(key)?.trim();
-
-	return value ? value : null;
-}
-
-function readOffset(searchParams: URLSearchParams) {
-	const value = searchParams.get('offset');
-
-	if (!value) {
-		return 0;
-	}
-
-	const parsedOffset = Number.parseInt(value, 10);
-
-	return Number.isFinite(parsedOffset) && parsedOffset > 0 ? parsedOffset : 0;
-}
+import {
+	createCatalogRouteUnavailableResponse,
+	createCatalogRouteValidationResponse,
+	isCatalogRouteValidationError,
+	parseCatalogRouteRequest,
+} from './contract';
 
 export async function GET(request: Request) {
-	const url = new URL(request.url);
-	const catalogPage = await getCatalogPage({
-		offset: readOffset(url.searchParams),
-		coupon: readQueryParam(url.searchParams, 'coupon'),
-		category: readQueryParam(url.searchParams, 'category'),
-		search: readQueryParam(url.searchParams, 'search'),
-	});
+	try {
+		const url = new URL(request.url);
+		const catalogPage = await getCatalogPage(
+			parseCatalogRouteRequest(url.searchParams),
+		);
 
-	return Response.json(catalogPage);
+		return Response.json(catalogPage);
+	} catch (error) {
+		if (isCatalogRouteValidationError(error)) {
+			return createCatalogRouteValidationResponse(error.details);
+		}
+
+		return createCatalogRouteUnavailableResponse();
+	}
 }

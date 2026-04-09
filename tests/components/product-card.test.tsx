@@ -44,7 +44,6 @@ describe('ProductCard', () => {
 		expect(html).toContain('text-surface');
 		expect(html).not.toContain('Record 1');
 		expect(html).not.toContain('Destaque');
-		expect(html).not.toContain('Frete grÃ¡tis');
 	});
 
 	it('renders quantity controls when the product is already in the cart', () => {

@@ -22,7 +22,9 @@ export default function ProductCard({
 	onDecrement,
 }: ProductCardProps) {
 	return (
-		<article className='group flex h-full flex-col overflow-hidden rounded-2xl border border-border-soft bg-surface shadow-(--shadow-soft)'>
+		<article
+			data-product-id={product.id}
+			className='group scroll-mt-32 sm:scroll-mt-36 flex h-full flex-col overflow-hidden rounded-2xl border border-border-soft bg-surface shadow-(--shadow-soft)'>
 			<div className='flex h-full flex-col'>
 				<div className='relative aspect-[4/4.6] overflow-hidden bg-white'>
 					{product.imageUrl ? (

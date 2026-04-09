@@ -3,7 +3,8 @@
 'use client';
 
 import type { CatalogPageResult } from '@/types/catalog';
-import type { Coupon, Product } from '@/types/divulgador';
+import type { Coupon } from '@/types/divulgador';
+import { useCart } from '@/hooks/storefront/use-cart';
 import { useStorefrontCatalog } from '@/hooks/storefront/use-storefront-catalog';
 
 import CategoryFilter from '../catalog/category-filter';
@@ -15,9 +16,6 @@ import EmptyState from '../shared/empty-state';
 type StorefrontCatalogClientProps = {
 	initialCatalogPage: CatalogPageResult;
 	coupons: readonly Coupon[];
-	cartQuantities: Readonly<Record<string, number>>;
-	onIncrement: (product: Product) => void;
-	onDecrement: (productId: string) => void;
 	selectedCategory: string | null;
 	selectedCoupon: string | null;
 	selectedSearch: string | null;
@@ -26,13 +24,11 @@ type StorefrontCatalogClientProps = {
 export default function StorefrontCatalogClient({
 	initialCatalogPage,
 	coupons,
-	cartQuantities,
-	onIncrement,
-	onDecrement,
 	selectedCategory,
 	selectedCoupon,
 	selectedSearch,
 }: StorefrontCatalogClientProps) {
+	const { cartQuantities, incrementCart, decrementCart } = useCart();
 	const {
 		searchQuery,
 		selectedCategoryValue,
@@ -95,8 +91,8 @@ export default function StorefrontCatalogClient({
 						hasMoreProducts={hasMoreProducts}
 						isPending={isRefreshingCatalog}
 						isLoadingMore={isLoadingMore}
-						onIncrement={onIncrement}
-						onDecrement={onDecrement}
+						onIncrement={incrementCart}
+						onDecrement={decrementCart}
 						products={loadedProducts}
 						onLoadMore={hasMoreProducts ? handleLoadMore : undefined}
 					/>

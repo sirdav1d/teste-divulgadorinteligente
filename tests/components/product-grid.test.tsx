@@ -44,4 +44,23 @@ describe('ProductGrid', () => {
 		expect(html).toContain('bg-brand-primary-strong');
 		expect(html).toContain('text-surface');
 	});
+
+	it('marks the products region busy and exposes a live result summary', () => {
+		const html = renderToStaticMarkup(
+			<ProductGrid
+				cartQuantities={{}}
+				isPending
+				onIncrement={() => {}}
+				onDecrement={() => {}}
+				products={Array.from({ length: 4 }, (_, index) =>
+					createProduct(index + 1),
+				)}
+			/>,
+		);
+
+		expect(html).toContain('aria-busy="true"');
+		expect(html).toContain('role="status"');
+		expect(html).toContain('aria-live="polite"');
+		expect(html).toContain('aria-atomic="true"');
+	});
 });

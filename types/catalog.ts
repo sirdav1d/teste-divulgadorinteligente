@@ -11,14 +11,33 @@ export type CatalogCategoryOption = {
 export type CatalogPageOptions = {
 	category?: string | null;
 	coupon?: string | null;
+	includeCategories?: boolean;
 	offset?: number;
 	pageSize?: number;
 	search?: string | null;
 };
 
 export type CatalogPageResult = {
-	availableCategories: CatalogCategoryOption[];
+	availableCategories?: CatalogCategoryOption[];
 	hasMore: boolean;
 	nextOffset: number | null;
 	products: Product[];
+};
+
+export type CatalogRouteRequest = {
+	category: string | null;
+	coupon: string | null;
+	includeCategories: boolean;
+	offset: number;
+	search: string | null;
+};
+
+export type CatalogRouteErrorCode = 'INVALID_QUERY' | 'CATALOG_UNAVAILABLE';
+
+export type CatalogRouteErrorResponse = {
+	error: {
+		code: CatalogRouteErrorCode;
+		message: string;
+		details?: string[];
+	};
 };
