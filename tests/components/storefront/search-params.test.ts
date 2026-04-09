@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { readSingleSearchParam } from '../../../helpers/url/read-single-search-param';
+import { readStorefrontSearchParams } from '../../../helpers/url/read-storefront-search-params';
 
 describe('readSingleSearchParam', () => {
 	it('returns the string value when the search param is a single string', () => {
@@ -17,5 +18,21 @@ describe('readSingleSearchParam', () => {
 		expect(readSingleSearchParam(undefined)).toBeNull();
 		expect(readSingleSearchParam('')).toBeNull();
 		expect(readSingleSearchParam([''])).toBeNull();
+	});
+});
+
+describe('readStorefrontSearchParams', () => {
+	it('reads the normalized catalog filters from the route search params', () => {
+		expect(
+			readStorefrontSearchParams({
+				category: ['office', 'ignored'],
+				coupon: 'AGORAVAI',
+				search: '  cadeira  ',
+			}),
+		).toEqual({
+			selectedCategory: 'office',
+			selectedCoupon: 'AGORAVAI',
+			selectedSearch: 'cadeira',
+		});
 	});
 });

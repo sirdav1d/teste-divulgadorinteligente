@@ -1,3 +1,5 @@
+/** @format */
+
 import type { Metadata, Viewport } from 'next';
 import {
 	Geist_Mono,
