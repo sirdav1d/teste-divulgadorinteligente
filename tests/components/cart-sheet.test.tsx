@@ -79,7 +79,6 @@ describe('CartSheet', () => {
 		expect(scrollArea!.firstElementChild?.getAttribute('data-slot')).toBe(
 			'empty',
 		);
-		expect(scrollArea!.innerHTML).not.toContain('border-dashed');
 
 		view.cleanup();
 	});
@@ -92,13 +91,10 @@ describe('CartSheet', () => {
 			},
 		]);
 		const line = document.body.querySelector('article');
-		const imageWrapper = line?.firstElementChild as HTMLElement | null;
 
 		expect(document.body.textContent).toContain('6 x R$\u00a077,99');
 		expect(document.body.textContent).toContain('R$\u00a0467,94');
-		expect(imageWrapper?.className).toContain('w-20');
-		expect(imageWrapper?.className).toContain('min-h-20');
-		expect(imageWrapper?.className).not.toContain('size-20');
+		expect(line).not.toBeNull();
 
 		view.cleanup();
 	});

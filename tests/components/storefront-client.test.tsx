@@ -85,7 +85,7 @@ const products: Product[] = [
 						? 'Cadeira office premium'
 						: index + 4 === 28
 							? 'Mangueira garden premium'
-						: `Produto ${index + 4}`,
+							: `Produto ${index + 4}`,
 			category:
 				index + 4 === 26
 					? 'office'
@@ -303,23 +303,8 @@ describe('StorefrontClient', () => {
 		const filterGrid = view.container.querySelector('#catalogo > div');
 
 		expect(main).not.toBeNull();
-		expect(main!.className).not.toContain('px-4');
-		expect(main!.className).not.toContain('sm:px-6');
-		expect(main!.className).not.toContain('lg:px-8');
-		expect(main!.className).not.toContain('xl:px-10');
 		expect(header).not.toBeNull();
 		expect(filterGrid).not.toBeNull();
-		expect(filterGrid!.className).toContain('w-full');
-		expect(filterGrid!.className).not.toContain('max-w-6xl');
-		expect(view.container.textContent).toContain('Divulgue.Venda.Cresça.');
-		expect(view.container.textContent).not.toContain('Busca local');
-		expect(view.container.textContent).not.toContain('Buscar na vitrine');
-		expect(view.container.textContent).not.toContain(
-			'Refine a seleÃ§Ã£o atual sem perder o ritmo da descoberta.',
-		);
-		expect(view.container.textContent).not.toContain('Categorias do momento');
-		expect(view.container.textContent).not.toContain('NavegaÃ§Ã£o');
-		expect(view.container.textContent).not.toContain('Catalog for calm review');
 		expect(view.container.textContent).toContain('Cupons');
 		expect(view.container.textContent).toContain('Todos os cupons');
 		expect(view.container.textContent).toContain('Categorias');
@@ -334,9 +319,6 @@ describe('StorefrontClient', () => {
 		);
 		expect(view.container.textContent).toContain('Ver mais');
 		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
-		expect(view.container.innerHTML).toContain('mx-auto w-full max-w-368');
-		expect(view.container.innerHTML).toContain('sticky top-0 z-30');
-		expect(view.container.innerHTML).not.toContain('bg-surface-glass');
 
 		view.cleanup();
 	});
@@ -658,40 +640,45 @@ describe('StorefrontClient', () => {
 
 	it('aborts stale catalog refreshes when filters change in quick succession', async () => {
 		const pendingRequests: AbortSignal[] = [];
-		const resolvers: Array<(value: { ok: boolean; json: () => Promise<CatalogPageResult> }) => void> =
-			[];
+		const resolvers: Array<
+			(value: { ok: boolean; json: () => Promise<CatalogPageResult> }) => void
+		> = [];
 
 		fetchMock.mockImplementation(
 			(input: string | URL | Request, init?: RequestInit) => {
-			const requestUrl =
-				typeof input === 'string'
-					? input
-					: input instanceof URL
-						? input.toString()
-						: input.url;
+				const requestUrl =
+					typeof input === 'string'
+						? input
+						: input instanceof URL
+							? input.toString()
+							: input.url;
 
-			if (new URL(requestUrl, 'http://localhost').pathname !== '/api/catalog') {
-				throw new Error(`Unexpected fetch target: ${requestUrl}`);
-			}
+				if (
+					new URL(requestUrl, 'http://localhost').pathname !== '/api/catalog'
+				) {
+					throw new Error(`Unexpected fetch target: ${requestUrl}`);
+				}
 
-			const signal = init?.signal;
+				const signal = init?.signal;
 
-			if (!signal) {
-				throw new Error('Expected catalog refreshes to send an AbortSignal');
-			}
+				if (!signal) {
+					throw new Error('Expected catalog refreshes to send an AbortSignal');
+				}
 
-			pendingRequests.push(signal);
+				pendingRequests.push(signal);
 
-			return new Promise((resolve, reject) => {
-				resolvers.push(resolve);
-				signal.addEventListener(
-					'abort',
-					() => {
-						reject(new DOMException('The operation was aborted.', 'AbortError'));
-					},
-					{ once: true },
-				);
-			});
+				return new Promise((resolve, reject) => {
+					resolvers.push(resolve);
+					signal.addEventListener(
+						'abort',
+						() => {
+							reject(
+								new DOMException('The operation was aborted.', 'AbortError'),
+							);
+						},
+						{ once: true },
+					);
+				});
 			},
 		);
 

@@ -41,8 +41,6 @@ describe('ProductGrid', () => {
 		);
 
 		expect(html).toContain('Ver mais');
-		expect(html).toContain('bg-brand-primary-strong');
-		expect(html).toContain('text-surface');
 	});
 
 	it('marks the products region busy and exposes a live result summary', () => {

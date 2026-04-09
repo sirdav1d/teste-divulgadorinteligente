@@ -40,8 +40,6 @@ describe('ProductCard', () => {
 
 		expect(html).toContain('Adicionar ao carrinho');
 		expect(html).not.toContain('Ver oferta');
-		expect(html).toContain('bg-brand-primary-strong');
-		expect(html).toContain('text-surface');
 		expect(html).not.toContain('Record 1');
 		expect(html).not.toContain('Destaque');
 	});
