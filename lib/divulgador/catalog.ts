@@ -5,7 +5,6 @@ import {
 	MAX_REMOTE_SCAN_PAGES,
 	PAGE_SIZE,
 } from '@/constants/storefront/pagination';
-import { buildCategoryOptions } from '@/helpers/storefront/category-filters';
 import type { CatalogPageOptions, CatalogPageResult } from '@/types/catalog';
 import type { Product } from '@/types/divulgador';
 
@@ -13,6 +12,7 @@ import {
 	applyCatalogCategoriesCachePolicy,
 	applyCatalogPageCachePolicy,
 } from './cache-policy';
+import { buildCategoryOptions } from './categories';
 import { getProductsPage } from './products';
 import {
 	normalizeLimit,

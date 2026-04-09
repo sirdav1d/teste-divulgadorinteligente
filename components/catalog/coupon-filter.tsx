@@ -4,7 +4,7 @@
 
 import { TicketPercentIcon } from 'lucide-react';
 
-import type { CouponOption } from '@/helpers/storefront/coupon-filters';
+import type { CouponOption } from '@/types/catalog';
 
 import CommandFilter from './command-filter';
 

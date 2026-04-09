@@ -16,6 +16,7 @@ describe('storefront boundaries architecture', () => {
 
 		expect(source).not.toContain("'use client'");
 		expect(source).toContain("import StorefrontHeroClient");
+		expect(source).toContain("import StorefrontHeader");
 	});
 
 	it('splits hero and cart interactions into a dedicated client island', () => {
@@ -30,6 +31,38 @@ describe('storefront boundaries architecture', () => {
 
 		expect(source).toContain("import { useCart }");
 		expect(source).toContain("import { useHeroVisibility }");
+	});
+
+	it('keeps a dedicated static hero shell outside the motion client boundary', () => {
+		const headerShellPath = join(
+			projectRoot,
+			'components/storefront/storefront-header-shell.tsx',
+		);
+		const headerShellSource = readFileSync(headerShellPath, 'utf8');
+		const headerSource = readFileSync(
+			join(projectRoot, 'components/storefront/storefront-header.tsx'),
+			'utf8',
+		);
+
+		expect(existsSync(headerShellPath)).toBe(true);
+		expect(headerShellSource).not.toContain("'use client'");
+		expect(headerSource).toContain("import StorefrontHeaderShell");
+		expect(headerSource).toContain("import StorefrontHeroMotion");
+	});
+
+	it('keeps hero motion and scroll behavior in a smaller dedicated client component', () => {
+		const heroMotionPath = join(
+			projectRoot,
+			'components/storefront/storefront-hero-motion.tsx',
+		);
+
+		expect(existsSync(heroMotionPath)).toBe(true);
+
+		const source = readFileSync(heroMotionPath, 'utf8');
+
+		expect(source).toContain("'use client'");
+		expect(source).toContain('useHeroScrollReveal');
+		expect(source).toContain('motion');
 	});
 
 	it('keeps cart state inside the catalog client island instead of prop-drilling it', () => {

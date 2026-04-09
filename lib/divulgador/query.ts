@@ -5,8 +5,9 @@ import {
 	OTHER_CATEGORY_VALUE,
 } from '@/constants/storefront/filters';
 import { PAGE_SIZE } from '@/constants/storefront/pagination';
-import { isOtherCategory } from '@/helpers/storefront/category-filters';
 import type { Product } from '@/types/divulgador';
+
+import { isOtherCategory } from './categories';
 
 export type FetchProductsPageOptions = {
 	category?: string | null;

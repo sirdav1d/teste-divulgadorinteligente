@@ -20,6 +20,8 @@ const filesToCheck = [
 	'components/catalog/coupon-filter.tsx',
 	'components/cart/cart-sheet.tsx',
 	'components/storefront/storefront-header.tsx',
+	'components/storefront/storefront-header-shell.tsx',
+	'tests/components/storefront-client.test.tsx',
 ];
 
 describe('encoding hygiene', () => {

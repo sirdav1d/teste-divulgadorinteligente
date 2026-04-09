@@ -1,13 +1,21 @@
 /** @format */
 'use client';
 
-import type { RefObject } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useScroll, useTransform } from 'motion/react';
 
-export function useHeroScrollReveal(
-	targetRef: RefObject<HTMLElement | null>,
-) {
+export function useHeroScrollReveal(targetId: string) {
+	const targetRef = useRef<HTMLElement | null>(null);
+
+	useEffect(() => {
+		targetRef.current = document.getElementById(targetId);
+
+		return () => {
+			targetRef.current = null;
+		};
+	}, [targetId]);
+
 	const { scrollYProgress } = useScroll({
 		target: targetRef,
 		offset: ['start start', 'end end'],

@@ -28,9 +28,10 @@ function listFilesSorted(root: string) {
 describe('helpers architecture', () => {
 	it('keeps lib restricted to api and type contracts', () => {
 		expect(listFilesSorted(libRoot)).toEqual([
-			'divulgador.ts',
 			'divulgador/cache-policy.ts',
+			'divulgador/catalog-route.ts',
 			'divulgador/catalog.ts',
+			'divulgador/categories.ts',
 			'divulgador/coupons.ts',
 			'divulgador/products.ts',
 			'divulgador/query.ts',
@@ -101,10 +102,6 @@ describe('helpers architecture', () => {
 			join(projectRoot, 'helpers/divulgador/build-url.ts'),
 			'utf8',
 		);
-		const apiSource = readFileSync(
-			join(projectRoot, 'lib/divulgador.ts'),
-			'utf8',
-		);
 		const storefrontCatalogSource = readFileSync(
 			join(projectRoot, 'components/storefront/storefront-catalog-client.tsx'),
 			'utf8',
@@ -117,8 +114,52 @@ describe('helpers architecture', () => {
 		expect(couponFiltersSource).not.toContain('export const ALL_COUPON_VALUE');
 		expect(sellerLabelSource).not.toContain('const SELLER_LABELS');
 		expect(buildUrlSource).not.toContain('const API_BASE_URL');
-		expect(apiSource).not.toContain('const SITE_NAME');
 		expect(storefrontCatalogSource).not.toContain('const PAGE_SIZE');
+	});
+
+	it('keeps structural filter contracts under root types instead of helper modules', () => {
+		const categoryFilterSource = readFileSync(
+			join(projectRoot, 'components/catalog/category-filter.tsx'),
+			'utf8',
+		);
+		const couponFilterSource = readFileSync(
+			join(projectRoot, 'components/catalog/coupon-filter.tsx'),
+			'utf8',
+		);
+		const categoryFiltersHelperSource = readFileSync(
+			join(projectRoot, 'helpers/storefront/category-filters.ts'),
+			'utf8',
+		);
+		const couponFiltersHelperSource = readFileSync(
+			join(projectRoot, 'helpers/storefront/coupon-filters.ts'),
+			'utf8',
+		);
+		const catalogTypesSource = readFileSync(
+			join(projectRoot, 'types/catalog.ts'),
+			'utf8',
+		);
+		const catalogSource = readFileSync(
+			join(projectRoot, 'lib/divulgador/catalog.ts'),
+			'utf8',
+		);
+
+		expect(categoryFilterSource).not.toContain(
+			"import type { CategoryOption } from '@/helpers/storefront/category-filters'",
+		);
+		expect(couponFilterSource).not.toContain(
+			"import type { CouponOption } from '@/helpers/storefront/coupon-filters'",
+		);
+		expect(categoryFiltersHelperSource).not.toContain('export type CategoryOption');
+		expect(categoryFiltersHelperSource).not.toContain(
+			'export function buildCategoryOptions',
+		);
+		expect(categoryFiltersHelperSource).not.toContain('export function filterProducts');
+		expect(couponFiltersHelperSource).not.toContain('export type CouponOption');
+		expect(catalogTypesSource).toContain('export type CategoryOption');
+		expect(catalogTypesSource).toContain('export type CouponOption');
+		expect(catalogSource).not.toContain(
+			"buildCategoryOptions } from '@/helpers/storefront/category-filters'",
+		);
 	});
 
 	it('imports shared production types from the root types directory', () => {
@@ -160,7 +201,8 @@ describe('helpers architecture', () => {
 		expect(existsSync(join(hooksRoot, 'catalog/use-command-filter.ts'))).toBe(
 			true,
 		);
-		expect(existsSync(join(hooksRoot, 'app/use-log-error.ts'))).toBe(true);
+		expect(existsSync(join(hooksRoot, 'shared/use-log-error.ts'))).toBe(true);
+		expect(existsSync(join(hooksRoot, 'app/use-log-error.ts'))).toBe(false);
 
 		const storefrontCatalogSource = readFileSync(
 			join(projectRoot, 'components/storefront/storefront-catalog-client.tsx'),
@@ -203,5 +245,23 @@ describe('helpers architecture', () => {
 		expect(commandFilterSource).not.toContain('setContainerElement');
 		expect(errorPageSource).not.toContain('console.error(error)');
 		expect(globalErrorPageSource).not.toContain('console.error(error)');
+	});
+
+	it('avoids presentation-only class assertions in component tests', () => {
+		const cartSheetTestSource = readFileSync(
+			join(projectRoot, 'tests/components/cart-sheet.test.tsx'),
+			'utf8',
+		);
+
+		expect(cartSheetTestSource).not.toContain(
+			"className.includes('overflow-y-auto')",
+		);
+	});
+
+	it('keeps test folders aligned with their actual layer responsibilities', () => {
+		expect(existsSync(join(projectRoot, 'tests/routes'))).toBe(true);
+		expect(existsSync(join(projectRoot, 'tests/stores'))).toBe(true);
+		expect(existsSync(join(projectRoot, 'tests/app'))).toBe(false);
+		expect(existsSync(join(projectRoot, 'tests/storefront'))).toBe(false);
 	});
 });

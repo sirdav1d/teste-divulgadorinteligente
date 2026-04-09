@@ -2,8 +2,8 @@
 
 'use client';
 
-import { RouteStateShell } from '@/components/app/route-state-shell';
-import { useLogError } from '@/hooks/app/use-log-error';
+import { RouteStateShell } from '@/components/shared/route-state-shell';
+import { useLogError } from '@/hooks/shared/use-log-error';
 
 type GlobalErrorPageProps = {
 	error: Error & { digest?: string };
@@ -20,9 +20,9 @@ export default function GlobalErrorPage({
 		<html lang='pt-BR'>
 			<body className='min-h-svh bg-background text-foreground'>
 				<RouteStateShell
-					eyebrow='Recuperacao global'
-					title='A experiencia saiu do ar'
-					description='Esta camada substituiu o layout raiz. Tente recuperar a experiencia e retomar a navegacao a partir de uma renderizacao limpa.'
+					eyebrow='Recuperação global'
+					title='A experiência saiu do ar'
+					description='Esta camada substituiu o layout raiz. Tente recuperar a experiência e retomar a navegação a partir de uma renderização limpa.'
 					action={
 						<button
 							type='button'

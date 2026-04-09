@@ -1,10 +1,10 @@
 /** @format */
 
 import { MAX_REMOTE_SCAN_PAGES, PAGE_SIZE } from '@/constants/storefront/pagination';
-import { buildCategoryOptions } from '@/helpers/storefront/category-filters';
 import type { CatalogPageResult } from '@/types/catalog';
 import type { Product } from '@/types/divulgador';
 
+import { buildCategoryOptions } from './categories';
 import { getProductsPage } from './products';
 import { matchesSearchQuery, matchesSelectedCategory } from './query';
 

@@ -47,7 +47,7 @@ export const metadata: Metadata = {
 		template: '%s | Divulgador Inteligente',
 	},
 	description:
-		'Vitrine premium de produtos, cupons e descoberta visual para o teste tecnico da Divulgador Inteligente.',
+		'Vitrine premium de produtos, cupons e descoberta visual para o teste técnico da Divulgador Inteligente.',
 	icons: {
 		icon: '/brand/divulgador-inteligente-favicon.ico',
 		shortcut: '/brand/divulgador-inteligente-favicon.ico',

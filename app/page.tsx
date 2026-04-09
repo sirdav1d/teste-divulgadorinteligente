@@ -1,8 +1,10 @@
 /** @format */
 
 import StorefrontExperience from '@/components/storefront/storefront-experience';
-import { getCatalogPage, getCoupons } from '@/lib/divulgador';
+
 import { readSingleSearchParam } from '@/helpers/url/read-single-search-param';
+import { getCatalogPage } from '@/lib/divulgador/catalog';
+import { getCoupons } from '@/lib/divulgador/coupons';
 
 export default async function HomePage(props: PageProps<'/'>) {
 	const resolvedSearchParams = await props.searchParams;

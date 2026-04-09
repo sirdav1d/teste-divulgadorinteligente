@@ -1,13 +1,12 @@
 /** @format */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export function useHeroVisibility() {
-	const heroRef = useRef<HTMLDivElement>(null);
+export function useHeroVisibility(targetId: string) {
 	const [isHeroVisible, setIsHeroVisible] = useState(true);
 
 	useEffect(() => {
-		const heroElement = heroRef.current;
+		const heroElement = document.getElementById(targetId);
 
 		if (!heroElement || typeof IntersectionObserver === 'undefined') {
 			return;
@@ -28,10 +27,9 @@ export function useHeroVisibility() {
 		return () => {
 			observer.disconnect();
 		};
-	}, []);
+	}, [targetId]);
 
 	return {
-		heroRef,
 		isHeroVisible,
 	};
 }

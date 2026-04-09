@@ -69,15 +69,11 @@ describe('CartSheet', () => {
 
 		expect(sheetContent).not.toBeNull();
 
-		const scrollArea = [...sheetContent!.children].find(
-			(node) =>
-				node instanceof HTMLElement &&
-				node.className.includes('overflow-y-auto'),
-		);
+		const emptyState = sheetContent!.querySelector('[data-slot="empty"]');
 
-		expect(scrollArea).toBeInstanceOf(HTMLElement);
-		expect(scrollArea!.firstElementChild?.getAttribute('data-slot')).toBe(
-			'empty',
+		expect(emptyState).not.toBeNull();
+		expect(emptyState?.textContent).toContain(
+			'O carrinho ainda está vazio',
 		);
 
 		view.cleanup();

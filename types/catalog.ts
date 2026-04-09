@@ -2,11 +2,20 @@
 
 import type { Product } from '@/types/divulgador';
 
-export type CatalogCategoryOption = {
+export type CategoryOption = {
 	value: string;
 	label: string;
 	count: number;
 };
+
+export type CouponOption = {
+	value: string;
+	label: string;
+	description: string;
+	keywords: string[];
+};
+
+export type CatalogCategoryOption = CategoryOption;
 
 export type CatalogPageOptions = {
 	category?: string | null;

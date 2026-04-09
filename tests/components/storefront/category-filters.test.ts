@@ -3,64 +3,20 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-	ALL_CATEGORY_VALUE,
-	OTHER_CATEGORY_VALUE,
-} from '../../../constants/storefront/filters';
-import {
-	buildCategoryOptions,
-	filterProducts,
+	formatCategoryLabel,
+	getCategoryLabel,
 } from '../../../helpers/storefront/category-filters';
-import type { Product } from '../../../types/divulgador';
-
-const products: Product[] = [
-	{
-		id: '1',
-		title: 'Panela de arroz',
-		imageUrl: null,
-		priceLabel: null,
-		priceValue: null,
-		priceFromLabel: null,
-		link: '#',
-		seller: 'amazon',
-		couponCode: null,
-		installment: null,
-		highlight: false,
-		freeShipping: false,
-		category: 'kitchen',
-	},
-	{
-		id: '2',
-		title: 'Kit academia',
-		imageUrl: null,
-		priceLabel: null,
-		priceValue: null,
-		priceFromLabel: null,
-		link: '#',
-		seller: 'mercadolivre',
-		couponCode: null,
-		installment: null,
-		highlight: false,
-		freeShipping: false,
-		category: null,
-	},
-];
 
 describe('category-filters', () => {
-	it('builds Todos plus real categories and Outros', () => {
-		expect(buildCategoryOptions(products)).toEqual([
-			{ value: ALL_CATEGORY_VALUE, label: 'Todos', count: 2 },
-			{ value: 'kitchen', label: 'Kitchen', count: 1 },
-			{ value: OTHER_CATEGORY_VALUE, label: 'Outros', count: 1 },
-		]);
+	it('formats category labels for display', () => {
+		expect(formatCategoryLabel('home_kitchen')).toBe('Home Kitchen');
+		expect(formatCategoryLabel('electronics-fashion')).toBe(
+			'Electronics Fashion',
+		);
 	});
 
-	it('filters by category and text together', () => {
-		expect(
-			filterProducts({
-				products,
-				searchQuery: 'kit',
-				selectedCategory: OTHER_CATEGORY_VALUE,
-			}),
-		).toHaveLength(1);
+	it('falls back to Outros for empty category labels', () => {
+		expect(getCategoryLabel(null)).toBe('Outros');
+		expect(getCategoryLabel('  street-wear  ')).toBe('Street Wear');
 	});
 });

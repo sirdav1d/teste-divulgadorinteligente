@@ -11,10 +11,14 @@ import { cacheTag } from 'next/cache';
 
 import {
 	getCatalogPage,
+} from '../../lib/divulgador/catalog';
+import {
 	getCoupons,
+} from '../../lib/divulgador/coupons';
+import {
 	getProducts,
 	getProductsByCoupon,
-} from '../../lib/divulgador';
+} from '../../lib/divulgador/products';
 import {
 	normalizeCoupon,
 	normalizeProduct,

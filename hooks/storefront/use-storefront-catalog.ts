@@ -11,10 +11,7 @@ import {
 	ALL_COUPON_VALUE,
 } from '@/constants/storefront/filters';
 import { buildCouponOptions } from '@/helpers/storefront/coupon-filters';
-import type {
-	CatalogCategoryOption,
-	CatalogPageResult,
-} from '@/types/catalog';
+import type { CategoryOption, CatalogPageResult } from '@/types/catalog';
 import type { Coupon } from '@/types/divulgador';
 
 import {
@@ -64,7 +61,7 @@ export function useStorefrontCatalog({
 	const [selectedCouponValue, setSelectedCouponValue] = useState(committedCoupon);
 	const [loadedProducts, setLoadedProducts] = useState(initialCatalogPage.products);
 	const [availableCategories, setAvailableCategories] = useState<
-		CatalogCategoryOption[]
+		CategoryOption[]
 	>(initialCatalogPage.availableCategories ?? []);
 	const [hasMoreProducts, setHasMoreProducts] = useState(
 		initialCatalogPage.hasMore,

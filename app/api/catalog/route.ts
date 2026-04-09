@@ -1,12 +1,12 @@
 /** @format */
 
-import { getCatalogPage } from '@/lib/divulgador';
+import { getCatalogPage } from '@/lib/divulgador/catalog';
 import {
 	createCatalogRouteUnavailableResponse,
 	createCatalogRouteValidationResponse,
 	isCatalogRouteValidationError,
 	parseCatalogRouteRequest,
-} from './contract';
+} from '@/lib/divulgador/catalog-route';
 
 export async function GET(request: Request) {
 	try {

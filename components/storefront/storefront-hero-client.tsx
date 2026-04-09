@@ -2,12 +2,15 @@
 
 'use client';
 
+import type { ReactNode } from 'react';
+
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
+
 import { useCart } from '@/hooks/storefront/use-cart';
 import { useHeroVisibility } from '@/hooks/storefront/use-hero-visibility';
+
 import CartSheet from '../cart/cart-sheet';
 import CartTrigger from '../cart/cart-trigger';
-import StorefrontHeader from './storefront-header';
 
 const cartTriggerTransition = {
 	type: 'spring',
@@ -16,8 +19,16 @@ const cartTriggerTransition = {
 	mass: 0.9,
 } as const;
 
-export default function StorefrontHeroClient() {
-	const { heroRef, isHeroVisible } = useHeroVisibility();
+type StorefrontHeroClientProps = {
+	children: ReactNode;
+	targetId: string;
+};
+
+export default function StorefrontHeroClient({
+	children,
+	targetId,
+}: StorefrontHeroClientProps) {
+	const { isHeroVisible } = useHeroVisibility(targetId);
 	const {
 		cartOpen,
 		setCartOpen,
@@ -30,22 +41,7 @@ export default function StorefrontHeroClient() {
 
 	return (
 		<LayoutGroup id='storefront-cart'>
-			<StorefrontHeader
-				ref={heroRef}
-				topBarSlot={
-					isHeroVisible ? (
-						<motion.div
-							layoutId='storefront-cart-trigger'
-							transition={cartTriggerTransition}>
-							<CartTrigger
-								itemCount={itemCount}
-								onClick={() => setCartOpen(true)}
-								variant='hero'
-							/>
-						</motion.div>
-					) : null
-				}
-			/>
+			{children}
 
 			<AnimatePresence initial={false}>
 				{!isHeroVisible ? (

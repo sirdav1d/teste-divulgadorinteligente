@@ -2,8 +2,8 @@
 
 'use client';
 
-import { RouteStateShell } from '@/components/app/route-state-shell';
-import { useLogError } from '@/hooks/app/use-log-error';
+import { RouteStateShell } from '@/components/shared/route-state-shell';
+import { useLogError } from '@/hooks/shared/use-log-error';
 
 type ErrorPageProps = {
 	error: Error & { digest?: string };
@@ -16,8 +16,8 @@ export default function ErrorPage({ error, unstable_retry }: ErrorPageProps) {
 	return (
 		<RouteStateShell
 			eyebrow='Instabilidade no app'
-			title='Nao foi possivel abrir esta vitrine'
-			description='Recarregue a pagina para retomar a navegacao.'
+			title='Não foi possível abrir esta vitrine'
+			description='Recarregue a página para retomar a navegação.'
 			action={
 				<button
 					type='button'

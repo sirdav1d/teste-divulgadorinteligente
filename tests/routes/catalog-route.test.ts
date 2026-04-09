@@ -6,7 +6,7 @@ const { getCatalogPageMock } = vi.hoisted(() => ({
 	getCatalogPageMock: vi.fn(),
 }));
 
-vi.mock('../../lib/divulgador', () => ({
+vi.mock('../../lib/divulgador/catalog', () => ({
 	getCatalogPage: getCatalogPageMock,
 }));
 

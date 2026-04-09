@@ -44,7 +44,7 @@ function createProduct(
 
 const products: Product[] = [
 	createProduct(1, {
-		title: 'Panela Eletrica Electrolux vapor arroz capacidade 1,8L 10 xicaras',
+		title: 'Panela Elétrica Electrolux vapor arroz capacidade 1,8L 10 xícaras',
 		imageUrl:
 			'https://m.media-amazon.com/images/I/515wvq9UoKL._SS500__QL100_.jpg',
 		priceLabel: 'R$\u00a0269,82',
@@ -67,7 +67,7 @@ const products: Product[] = [
 		category: null,
 	}),
 	createProduct(3, {
-		title: 'Mouse Vertical Sem Fio Ergonomico Office Preto',
+		title: 'Mouse Vertical Sem Fio Ergonômico Office Preto',
 		imageUrl: 'https://m.media-amazon.com/images/I/61mouse.jpg',
 		priceLabel: 'R$\u00a0129,90',
 		priceValue: 129.9,
@@ -310,12 +310,12 @@ describe('StorefrontClient', () => {
 		expect(view.container.textContent).toContain('Categorias');
 		expect(view.container.textContent).toContain('Todas as categorias');
 		expect(view.container.textContent).toContain('Outros');
-		expect(view.container.textContent).toContain('Panela Eletrica Electrolux');
+		expect(view.container.textContent).toContain('Panela Elétrica Electrolux');
 		expect(view.container.textContent).toContain(
 			'Kit 2 Macaquinho Curto Fitness Poli Academia',
 		);
 		expect(view.container.textContent).toContain(
-			'Mouse Vertical Sem Fio Ergonomico Office Preto',
+			'Mouse Vertical Sem Fio Ergonômico Office Preto',
 		);
 		expect(view.container.textContent).toContain('Ver mais');
 		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
@@ -416,10 +416,10 @@ describe('StorefrontClient', () => {
 
 		expect(view.container.textContent).toContain('Cadeira office premium');
 		expect(view.container.textContent).not.toContain(
-			'Panela Eletrica Electrolux',
+			'Panela Elétrica Electrolux',
 		);
 		expect(view.container.textContent).not.toContain(
-			'Mouse Vertical Sem Fio Ergonomico Office Preto',
+			'Mouse Vertical Sem Fio Ergonômico Office Preto',
 		);
 
 		view.cleanup();
@@ -748,7 +748,7 @@ describe('StorefrontClient', () => {
 	it('syncs quantity controls between the product card and the cart sheet', async () => {
 		const view = renderStorefront();
 		const productTitle =
-			'Panela Eletrica Electrolux vapor arroz capacidade 1,8L 10 xicaras';
+			'Panela Elétrica Electrolux vapor arroz capacidade 1,8L 10 xícaras';
 		const productCard = [...view.container.querySelectorAll('article')].find(
 			(article) => article.textContent?.includes(productTitle),
 		);

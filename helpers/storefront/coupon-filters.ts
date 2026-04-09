@@ -1,16 +1,10 @@
 /** @format */
 
 import type { Coupon } from '@/types/divulgador';
+import type { CouponOption } from '@/types/catalog';
 
 import { ALL_COUPON_VALUE } from '@/constants/storefront/filters';
 import { getSellerLabel } from '@/helpers/storefront/seller-label';
-
-export type CouponOption = {
-	value: string;
-	label: string;
-	description: string;
-	keywords: string[];
-};
 
 export function buildCouponOptions(coupons: readonly Coupon[]): CouponOption[] {
 	const seen = new Set<string>();
