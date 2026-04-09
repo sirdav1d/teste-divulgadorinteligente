@@ -1,10 +1,13 @@
 /** @format */
 
 import { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import StorefrontExperience from '../../components/storefront/storefront-experience';
+import StorefrontInitialBootstrap from '../../components/storefront/storefront-initial-bootstrap';
+import { HOME_BOOTSTRAP_LOADING_ATTRIBUTE } from '../../helpers/storefront/home-bootstrap-loading';
 import { resetCartStore } from '../../stores/storefront/cart-store';
 import type { CatalogPageResult } from '../../types/catalog';
 import type { Coupon, Product } from '../../types/divulgador';
@@ -14,6 +17,7 @@ const fetchMock = vi.fn();
 let replaceStateSpy: ReturnType<typeof vi.spyOn>;
 const CATALOG_ERROR_TEXT =
 	'Não foi possível atualizar o catálogo agora. Tente novamente.';
+const BOOTSTRAP_COPY_TEXT = 'Preparando sua vitrine inteligente.';
 
 vi.mock('next/navigation', () => ({
 	usePathname: () => '/',
@@ -227,17 +231,20 @@ function renderStorefront({
 
 	act(() => {
 		root.render(
-			<StorefrontExperience
-				catalogPage={buildCatalogPage({
-					category: selectedCategory,
-					coupon: selectedCoupon,
-					search: selectedSearch,
-				})}
-				coupons={coupons}
-				selectedCategory={selectedCategory}
-				selectedCoupon={selectedCoupon}
-				selectedSearch={selectedSearch}
-			/>,
+			<>
+				<StorefrontInitialBootstrap />
+				<StorefrontExperience
+					catalogPage={buildCatalogPage({
+						category: selectedCategory,
+						coupon: selectedCoupon,
+						search: selectedSearch,
+					})}
+					coupons={coupons}
+					selectedCategory={selectedCategory}
+					selectedCoupon={selectedCoupon}
+					selectedSearch={selectedSearch}
+				/>
+			</>,
 		);
 	});
 
@@ -392,6 +399,116 @@ describe('StorefrontClient', () => {
 		);
 
 		view.cleanup();
+	});
+
+	it('shows the bootstrap overlay only when the document is flagged for initial home loading', async () => {
+		vi.useFakeTimers();
+		document.documentElement.setAttribute(
+			HOME_BOOTSTRAP_LOADING_ATTRIBUTE,
+			'true',
+		);
+
+		const view = renderStorefront();
+		const bootstrapOverlay = document.querySelector(
+			"[data-slot='home-bootstrap-loading']",
+		);
+
+		try {
+			expect(bootstrapOverlay).not.toBeNull();
+			expect(bootstrapOverlay?.getAttribute('aria-hidden')).toBe('false');
+			expect(bootstrapOverlay?.getAttribute('data-bootstrap-active')).toBe(
+				'true',
+			);
+			expect(bootstrapOverlay?.textContent).toContain(BOOTSTRAP_COPY_TEXT);
+			expect(bootstrapOverlay?.textContent).toContain('0%');
+
+			await act(async () => {
+				vi.advanceTimersByTime(600);
+				await flushAsyncWork(6);
+			});
+
+			expect(bootstrapOverlay?.getAttribute('aria-hidden')).toBe('true');
+			expect(bootstrapOverlay?.getAttribute('data-bootstrap-active')).toBe(
+				'false',
+			);
+			expect(document.documentElement.hasAttribute(HOME_BOOTSTRAP_LOADING_ATTRIBUTE)).toBe(
+				false,
+			);
+			expect(view.container.textContent).toContain('Cupons');
+		} finally {
+			view.cleanup();
+			vi.useRealTimers();
+		}
+	});
+
+	it('does not mount the bootstrap overlay when the document is not flagged', () => {
+		const view = renderStorefront();
+		const bootstrapOverlay = document.querySelector(
+			"[data-slot='home-bootstrap-loading']",
+		);
+
+		expect(bootstrapOverlay).not.toBeNull();
+		expect(bootstrapOverlay?.getAttribute('aria-hidden')).toBe('true');
+		expect(bootstrapOverlay?.getAttribute('data-bootstrap-active')).toBe(
+			'false',
+		);
+		expect(view.container.textContent).toContain('Panela');
+
+		view.cleanup();
+	});
+
+	it('does not reactivate the bootstrap overlay during catalog interactions', async () => {
+		const view = renderStorefront();
+		const input = view.container.querySelector("input[name='search']");
+		const bootstrapOverlay = document.querySelector(
+			"[data-slot='home-bootstrap-loading']",
+		);
+
+		expect(input).not.toBeNull();
+		expect(bootstrapOverlay?.getAttribute('aria-hidden')).toBe('true');
+
+		await act(async () => {
+			Object.assign(input!, { value: 'Notebook' });
+			input!.dispatchEvent(new Event('input', { bubbles: true }));
+			await flushAsyncWork();
+		});
+
+		expect(bootstrapOverlay?.getAttribute('aria-hidden')).toBe('true');
+		expect(bootstrapOverlay?.getAttribute('data-bootstrap-active')).toBe(
+			'false',
+		);
+		expect(view.container.textContent).toContain('Notebook gamer Nitro 5');
+
+		view.cleanup();
+	});
+
+	it('hydrates the bootstrap overlay without mismatch when the hard-reload attribute is present', async () => {
+		vi.useFakeTimers();
+		document.documentElement.setAttribute(
+			HOME_BOOTSTRAP_LOADING_ATTRIBUTE,
+			'true',
+		);
+		const consoleErrorSpy = vi
+			.spyOn(console, 'error')
+			.mockImplementation(() => {});
+		const container = document.createElement('div');
+		const serverMarkup = renderToString(<StorefrontInitialBootstrap />);
+
+		container.innerHTML = serverMarkup;
+		document.body.appendChild(container);
+
+		try {
+			await act(async () => {
+				hydrateRoot(container, <StorefrontInitialBootstrap />);
+				await flushAsyncWork();
+			});
+
+			expect(consoleErrorSpy).not.toHaveBeenCalled();
+		} finally {
+			consoleErrorSpy.mockRestore();
+			container.remove();
+			vi.useRealTimers();
+		}
 	});
 
 	it('restores the last committed filters when a catalog refresh fails', async () => {

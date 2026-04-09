@@ -5,6 +5,8 @@ import {
 	Plus_Jakarta_Sans,
 } from 'next/font/google';
 
+import { buildHomeBootstrapLoadingScript } from '@/helpers/storefront/home-bootstrap-loading';
+
 import './globals.css';
 
 const DEFAULT_METADATA_BASE = 'http://localhost:3000';
@@ -67,8 +69,15 @@ export default function RootLayout({
 	return (
 		<html
 			lang='pt-BR'
+			suppressHydrationWarning
 			className={`${brandSans.variable} ${geistMono.variable} ${heroDisplay.variable} h-full antialiased`}>
 			<body className='min-h-full bg-background text-foreground'>
+				<script
+					id='home-bootstrap-loading'
+					dangerouslySetInnerHTML={{
+						__html: buildHomeBootstrapLoadingScript(),
+					}}
+				/>
 				{children}
 			</body>
 		</html>

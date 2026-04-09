@@ -10,7 +10,6 @@ const mojibakePattern = /Ãƒ|Ã|Â|�/;
 
 const filesToCheck = [
 	'app/layout.tsx',
-	'app/loading.tsx',
 	'app/error.tsx',
 	'app/global-error.tsx',
 	'app/not-found.tsx',
@@ -19,8 +18,11 @@ const filesToCheck = [
 	'components/catalog/search-box.tsx',
 	'components/catalog/coupon-filter.tsx',
 	'components/cart/cart-sheet.tsx',
+	'components/storefront/storefront-initial-bootstrap.tsx',
 	'components/storefront/storefront-header.tsx',
 	'components/storefront/storefront-header-shell.tsx',
+	'helpers/storefront/home-bootstrap-loading.ts',
+	'hooks/storefront/use-home-bootstrap-progress.ts',
 	'tests/components/storefront-client.test.tsx',
 ];
 

@@ -7,7 +7,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import ErrorPage from '../../app/error';
 import GlobalErrorPage from '../../app/global-error';
-import Loading from '../../app/loading';
 import NotFound from '../../app/not-found';
 
 function renderClientComponent(element: React.ReactNode) {
@@ -35,14 +34,6 @@ afterEach(() => {
 });
 
 describe('route states', () => {
-	it('renders a lightweight loading shell', () => {
-		const html = renderToStaticMarkup(<Loading />);
-
-		expect(html).toContain('<main');
-		expect(html).toContain('<section');
-		expect(html).not.toContain('<button');
-	});
-
 	it('renders a recoverable segment error boundary', () => {
 		const retry = vi.fn();
 		const view = renderClientComponent(

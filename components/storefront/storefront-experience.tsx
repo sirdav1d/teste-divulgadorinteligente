@@ -26,7 +26,9 @@ export default function StorefrontExperience({
 	const heroId = 'storefront-hero';
 
 	return (
-		<main className='relative min-h-screen'>
+		<main
+			data-home-bootstrap-root='true'
+			className='relative min-h-screen'>
 			<div className='pointer-events-none absolute left-0 top-20 h-56 w-56 rounded-full bg-brand-accent-soft blur-3xl' />
 			<div className='pointer-events-none absolute bottom-10 right-0 h-64 w-64 rounded-full bg-brand-accent-soft blur-3xl' />
 

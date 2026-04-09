@@ -1,13 +1,22 @@
 /** @format */
 
+import { Suspense } from 'react';
+
+import StorefrontInitialBootstrap from '@/components/storefront/storefront-initial-bootstrap';
 import StorefrontExperience from '@/components/storefront/storefront-experience';
 
 import { readSingleSearchParam } from '@/helpers/url/read-single-search-param';
 import { getCatalogPage } from '@/lib/divulgador/catalog';
 import { getCoupons } from '@/lib/divulgador/coupons';
 
-export default async function HomePage(props: PageProps<'/'>) {
-	const resolvedSearchParams = await props.searchParams;
+type HomePageContentProps = {
+	searchParamsPromise: PageProps<'/'>['searchParams'];
+};
+
+async function HomePageContent({
+	searchParamsPromise,
+}: HomePageContentProps) {
+	const resolvedSearchParams = await searchParamsPromise;
 	const selectedCoupon = readSingleSearchParam(resolvedSearchParams.coupon);
 	const selectedCategory = readSingleSearchParam(resolvedSearchParams.category);
 	const selectedSearch = readSingleSearchParam(resolvedSearchParams.search);
@@ -30,5 +39,16 @@ export default async function HomePage(props: PageProps<'/'>) {
 			selectedCoupon={selectedCoupon}
 			selectedSearch={selectedSearch}
 		/>
+	);
+}
+
+export default function HomePage(props: PageProps<'/'>) {
+	return (
+		<>
+			<StorefrontInitialBootstrap />
+			<Suspense fallback={null}>
+				<HomePageContent searchParamsPromise={props.searchParams} />
+			</Suspense>
+		</>
 	);
 }
