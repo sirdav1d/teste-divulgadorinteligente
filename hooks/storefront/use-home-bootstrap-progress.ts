@@ -4,7 +4,10 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-import { HOME_BOOTSTRAP_LOADING_ATTRIBUTE } from '@/helpers/storefront/home-bootstrap-loading';
+import {
+	HOME_BOOTSTRAP_HERO_READY_EVENT,
+	HOME_BOOTSTRAP_LOADING_ATTRIBUTE,
+} from '@/helpers/storefront/home-bootstrap-loading';
 
 const BOOTSTRAP_COPY_TEXT = 'Preparando sua vitrine inteligente.';
 const BOOTSTRAP_PROGRESS_MILESTONES = [
@@ -58,31 +61,36 @@ export function useHomeBootstrapProgress(): HomeBootstrapState {
 			return;
 		}
 
-		for (const milestone of BOOTSTRAP_PROGRESS_MILESTONES) {
-			const timeoutId = window.setTimeout(() => {
-				setState((currentState) => ({
-					...currentState,
-					progress: milestone.progress,
-				}));
-			}, milestone.delayMs);
+		let minimumVisibleReached = false;
+		let heroReadyReceived = false;
+		let exitScheduled = false;
 
+		const scheduleTimeout = (callback: () => void, delayMs: number) => {
+			const timeoutId = window.setTimeout(callback, delayMs);
 			timeoutIdsRef.current.push(timeoutId);
-		}
 
-		const settleTimeoutId = window.setTimeout(() => {
+			return timeoutId;
+		};
+
+		const startExit = () => {
+			if (exitScheduled) {
+				return;
+			}
+
+			exitScheduled = true;
 			animationFrameIdRef.current = window.requestAnimationFrame(() => {
 				setState((currentState) => ({
 					...currentState,
 					progress: 100,
 				}));
 
-				const exitTimeoutId = window.setTimeout(() => {
+				scheduleTimeout(() => {
 					setState((currentState) => ({
 						...currentState,
 						isExiting: true,
 					}));
 
-					const hideTimeoutId = window.setTimeout(() => {
+					scheduleTimeout(() => {
 						clearDocumentBootstrapState();
 						setState((currentState) => ({
 							...currentState,
@@ -90,17 +98,48 @@ export function useHomeBootstrapProgress(): HomeBootstrapState {
 							isExiting: false,
 						}));
 					}, EXIT_DURATION_MS);
-
-					timeoutIdsRef.current.push(hideTimeoutId);
 				}, HOLD_FULL_PROGRESS_MS);
-
-				timeoutIdsRef.current.push(exitTimeoutId);
 			});
+		};
+
+		const maybeFinishBootstrap = () => {
+			if (!minimumVisibleReached || !heroReadyReceived) {
+				return;
+			}
+
+			startExit();
+		};
+
+		const handleHeroReady = () => {
+			heroReadyReceived = true;
+			maybeFinishBootstrap();
+		};
+
+		window.addEventListener(
+			HOME_BOOTSTRAP_HERO_READY_EVENT,
+			handleHeroReady,
+		);
+
+		for (const milestone of BOOTSTRAP_PROGRESS_MILESTONES) {
+			scheduleTimeout(() => {
+				setState((currentState) => ({
+					...currentState,
+					progress: milestone.progress,
+				}));
+			}, milestone.delayMs);
+		}
+
+		scheduleTimeout(() => {
+			minimumVisibleReached = true;
+			maybeFinishBootstrap();
 		}, MIN_VISIBLE_DURATION_MS);
 
-		timeoutIdsRef.current.push(settleTimeoutId);
-
 		return () => {
+			window.removeEventListener(
+				HOME_BOOTSTRAP_HERO_READY_EVENT,
+				handleHeroReady,
+			);
+
 			for (const timeoutId of timeoutIdsRef.current) {
 				window.clearTimeout(timeoutId);
 			}

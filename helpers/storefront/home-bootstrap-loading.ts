@@ -1,6 +1,7 @@
 /** @format */
 
 export const HOME_BOOTSTRAP_LOADING_ATTRIBUTE = 'data-home-bootstrap-loading';
+export const HOME_BOOTSTRAP_HERO_READY_EVENT = 'storefront:hero-ready';
 
 const HOME_PATHNAME = '/';
 

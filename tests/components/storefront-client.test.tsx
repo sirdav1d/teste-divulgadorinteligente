@@ -7,7 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import StorefrontExperience from '../../components/storefront/storefront-experience';
 import StorefrontInitialBootstrap from '../../components/storefront/storefront-initial-bootstrap';
-import { HOME_BOOTSTRAP_LOADING_ATTRIBUTE } from '../../helpers/storefront/home-bootstrap-loading';
+import {
+	HOME_BOOTSTRAP_HERO_READY_EVENT,
+	HOME_BOOTSTRAP_LOADING_ATTRIBUTE,
+} from '../../helpers/storefront/home-bootstrap-loading';
 import { resetCartStore } from '../../stores/storefront/cart-store';
 import type { CatalogPageResult } from '../../types/catalog';
 import type { Coupon, Product } from '../../types/divulgador';
@@ -401,7 +404,7 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
-	it('shows the bootstrap overlay only when the document is flagged for initial home loading', async () => {
+	it('keeps the bootstrap overlay active until the hero emits the ready signal', async () => {
 		vi.useFakeTimers();
 		document.documentElement.setAttribute(
 			HOME_BOOTSTRAP_LOADING_ATTRIBUTE,
@@ -427,13 +430,27 @@ describe('StorefrontClient', () => {
 				await flushAsyncWork(6);
 			});
 
+			expect(bootstrapOverlay?.getAttribute('aria-hidden')).toBe('false');
+			expect(bootstrapOverlay?.getAttribute('data-bootstrap-active')).toBe(
+				'true',
+			);
+			expect(
+				document.documentElement.hasAttribute(
+					HOME_BOOTSTRAP_LOADING_ATTRIBUTE,
+				),
+			).toBe(true);
+
+			await act(async () => {
+				window.dispatchEvent(new Event(HOME_BOOTSTRAP_HERO_READY_EVENT));
+				vi.advanceTimersByTime(300);
+				await flushAsyncWork(6);
+			});
+
 			expect(bootstrapOverlay?.getAttribute('aria-hidden')).toBe('true');
 			expect(bootstrapOverlay?.getAttribute('data-bootstrap-active')).toBe(
 				'false',
 			);
-			expect(document.documentElement.hasAttribute(HOME_BOOTSTRAP_LOADING_ATTRIBUTE)).toBe(
-				false,
-			);
+			expect(document.documentElement.hasAttribute(HOME_BOOTSTRAP_LOADING_ATTRIBUTE)).toBe(false);
 			expect(view.container.textContent).toContain('Cupons');
 		} finally {
 			view.cleanup();
@@ -508,6 +525,34 @@ describe('StorefrontClient', () => {
 			consoleErrorSpy.mockRestore();
 			container.remove();
 			vi.useRealTimers();
+		}
+	});
+
+	it('emits the hero ready signal when the hero media can display the first frame', () => {
+		const heroReadyHandler = vi.fn();
+		window.addEventListener(
+			HOME_BOOTSTRAP_HERO_READY_EVENT,
+			heroReadyHandler,
+		);
+
+		const view = renderStorefront();
+		const heroVideo = view.container.querySelector('video');
+
+		expect(heroVideo).not.toBeNull();
+
+		try {
+			act(() => {
+				heroVideo!.dispatchEvent(new Event('loadeddata', { bubbles: true }));
+				heroVideo!.dispatchEvent(new Event('loadeddata', { bubbles: true }));
+			});
+
+			expect(heroReadyHandler).toHaveBeenCalledTimes(1);
+		} finally {
+			window.removeEventListener(
+				HOME_BOOTSTRAP_HERO_READY_EVENT,
+				heroReadyHandler,
+			);
+			view.cleanup();
 		}
 	});
 
