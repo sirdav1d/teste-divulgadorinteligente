@@ -12,6 +12,8 @@ import type { Coupon, Product } from '../../types/divulgador';
 const replaceMock = vi.fn();
 const fetchMock = vi.fn();
 let replaceStateSpy: ReturnType<typeof vi.spyOn>;
+const CATALOG_ERROR_TEXT =
+	'Não foi possível atualizar o catálogo agora. Tente novamente.';
 
 vi.mock('next/navigation', () => ({
 	usePathname: () => '/',
@@ -250,6 +252,12 @@ function renderStorefront({
 	};
 }
 
+async function flushAsyncWork(cycles = 4) {
+	for (let cycle = 0; cycle < cycles; cycle += 1) {
+		await Promise.resolve();
+	}
+}
+
 beforeEach(() => {
 	resetCartStore();
 	replaceMock.mockReset();
@@ -386,6 +394,36 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
+	it('restores the last committed filters when a catalog refresh fails', async () => {
+		fetchMock.mockRejectedValueOnce(
+			new Error('Temporary catalog refresh failure'),
+		);
+
+		const view = renderStorefront();
+		const input = view.container.querySelector(
+			"input[name='search']",
+		) as HTMLInputElement | null;
+
+		expect(input).not.toBeNull();
+
+		await act(async () => {
+			Object.assign(input!, { value: 'Notebook' });
+			input!.dispatchEvent(new Event('input', { bubbles: true }));
+			await flushAsyncWork();
+		});
+
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		expect(input!.value).toBe('');
+		expect(view.container.textContent).toContain('Panela');
+		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
+		expect(view.container.textContent).toContain(CATALOG_ERROR_TEXT);
+		expect(replaceStateSpy).not.toHaveBeenCalled();
+		expect(window.location.search).toBe('');
+		expect(window.location.hash).toBe('');
+
+		view.cleanup();
+	});
+
 	it('combines category and search across the full remote catalog', async () => {
 		const view = renderStorefront();
 		const othersButton = [...view.container.querySelectorAll('button')].find(
@@ -478,6 +516,39 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
+	it('keeps the current grid stable when loading more products fails', async () => {
+		fetchMock.mockRejectedValueOnce(new Error('Temporary load more failure'));
+
+		const view = renderStorefront();
+		const loadMoreButton = [...view.container.querySelectorAll('button')].find(
+			(button) => button.textContent?.includes('Ver mais'),
+		);
+
+		expect(loadMoreButton).not.toBeUndefined();
+
+		await act(async () => {
+			loadMoreButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await flushAsyncWork();
+		});
+
+		const recoveredLoadMoreButton = [
+			...view.container.querySelectorAll('button'),
+		].find((button) => button.textContent?.includes('Ver mais'));
+
+		expect(view.container.textContent).toContain('Panela');
+		expect(view.container.textContent).not.toContain('Notebook gamer Nitro 5');
+		expect(view.container.textContent).toContain(CATALOG_ERROR_TEXT);
+		expect(view.container.textContent).not.toContain(
+			'Nenhuma oferta combina com a busca atual.',
+		);
+		expect(recoveredLoadMoreButton).not.toBeUndefined();
+		expect(recoveredLoadMoreButton!.textContent).toContain('Ver mais');
+		expect(recoveredLoadMoreButton!.getAttribute('aria-busy')).toBe('false');
+		expect((recoveredLoadMoreButton as HTMLButtonElement).disabled).toBe(false);
+
+		view.cleanup();
+	});
+
 	it('uses instant scrolling after load more when reduced motion is enabled', async () => {
 		const matchMediaMock = vi.fn((query: string) => ({
 			matches: query === '(prefers-reduced-motion: reduce)',
@@ -530,7 +601,7 @@ describe('StorefrontClient', () => {
 		}
 	});
 
-	it('syncs the url with native history when the user selects a coupon from the command list', () => {
+	it('syncs the url with native history when the coupon refresh succeeds', async () => {
 		const view = renderStorefront();
 		const couponButton = [...view.container.querySelectorAll('button')].find(
 			(button) => button.textContent?.includes('Cupons'),
@@ -552,6 +623,10 @@ describe('StorefrontClient', () => {
 			couponOption!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		});
 
+		await act(async () => {
+			await flushAsyncWork();
+		});
+
 		expect(couponButton!.textContent).toContain('AGORAVAI');
 		expect(replaceMock).not.toHaveBeenCalled();
 		expect(replaceStateSpy).toHaveBeenCalledWith(
@@ -565,7 +640,7 @@ describe('StorefrontClient', () => {
 		view.cleanup();
 	});
 
-	it('updates the selected category immediately and persists it in the url', () => {
+	it('updates the selected category and persists it in the url after refresh', async () => {
 		const view = renderStorefront();
 		const categoryButton = [...view.container.querySelectorAll('button')].find(
 			(button) => button.textContent?.includes('Categorias'),
@@ -585,6 +660,10 @@ describe('StorefrontClient', () => {
 
 		act(() => {
 			categoryOption!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		});
+
+		await act(async () => {
+			await flushAsyncWork();
 		});
 
 		expect(categoryButton!.textContent).toContain('Outros');

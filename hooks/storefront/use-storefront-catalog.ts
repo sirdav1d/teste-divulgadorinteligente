@@ -2,7 +2,13 @@
 
 'use client';
 
-import { useDeferredValue, useEffect, useRef, useState } from 'react';
+import {
+	useDeferredValue,
+	useEffect,
+	useEffectEvent,
+	useRef,
+	useState,
+} from 'react';
 
 import { usePathname } from 'next/navigation';
 
@@ -31,6 +37,9 @@ type UseStorefrontCatalogOptions = {
 	selectedCoupon: string | null;
 	selectedSearch: string | null;
 };
+
+const CATALOG_REFRESH_ERROR_MESSAGE =
+	'Não foi possível atualizar o catálogo agora. Tente novamente.';
 
 function getCatalogScrollBehavior(): ScrollBehavior {
 	if (
@@ -69,7 +78,8 @@ export function useStorefrontCatalog({
 	const [nextOffset, setNextOffset] = useState(initialCatalogPage.nextOffset);
 	const [isRefreshingCatalog, setIsRefreshingCatalog] = useState(false);
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
-	const lastAppliedFiltersRef = useRef<CatalogFilterState>({
+	const [catalogError, setCatalogError] = useState<string | null>(null);
+	const committedFiltersRef = useRef<CatalogFilterState>({
 		category: committedCategory,
 		coupon: committedCoupon,
 		search: committedSearch,
@@ -78,7 +88,15 @@ export function useStorefrontCatalog({
 	const pendingScrollProductIdRef = useRef<string | null>(null);
 	const requestSequenceRef = useRef(0);
 
-	function refreshCatalog(
+	function restoreCommittedFilters() {
+		const committedFilters = committedFiltersRef.current;
+
+		setSearchQuery(committedFilters.search);
+		setSelectedCategoryValue(committedFilters.category);
+		setSelectedCouponValue(committedFilters.coupon);
+	}
+
+	const refreshCatalog = useEffectEvent(function refreshCatalog(
 		nextFilters: CatalogFilterState,
 		includeCategories: boolean,
 	) {
@@ -88,6 +106,7 @@ export function useStorefrontCatalog({
 		refreshAbortControllerRef.current = abortController;
 		pendingScrollProductIdRef.current = null;
 
+		setCatalogError(null);
 		setIsRefreshingCatalog(true);
 
 		void fetchCatalogPage(
@@ -101,19 +120,30 @@ export function useStorefrontCatalog({
 					return;
 				}
 
+				committedFiltersRef.current = nextFilters;
 				setLoadedProducts(catalogPage.products);
 				if (catalogPage.availableCategories) {
 					setAvailableCategories(catalogPage.availableCategories);
 				}
 				setHasMoreProducts(catalogPage.hasMore);
 				setNextOffset(catalogPage.nextOffset);
+				window.history.replaceState(
+					null,
+					'',
+					buildCatalogHref(pathname, nextFilters),
+				);
 			})
 			.catch((error) => {
+				if (requestId !== requestSequenceRef.current) {
+					return;
+				}
+
 				if (isAbortError(error)) {
 					return;
 				}
 
-				throw error;
+				restoreCommittedFilters();
+				setCatalogError(CATALOG_REFRESH_ERROR_MESSAGE);
 			})
 			.finally(() => {
 				if (requestId === requestSequenceRef.current) {
@@ -123,7 +153,7 @@ export function useStorefrontCatalog({
 					setIsRefreshingCatalog(false);
 				}
 			});
-	}
+	});
 
 	useEffect(() => {
 		return () => {
@@ -166,7 +196,7 @@ export function useStorefrontCatalog({
 			coupon: selectedCouponValue,
 			search: deferredSearchQuery.trim(),
 		};
-		const currentFilters = lastAppliedFiltersRef.current;
+		const currentFilters = committedFiltersRef.current;
 
 		if (sameFilters(nextFilters, currentFilters)) {
 			return;
@@ -175,12 +205,6 @@ export function useStorefrontCatalog({
 		const includeCategories = shouldIncludeCategoriesOnRefresh(
 			currentFilters,
 			nextFilters,
-		);
-		lastAppliedFiltersRef.current = nextFilters;
-		window.history.replaceState(
-			null,
-			'',
-			buildCatalogHref(pathname, nextFilters),
 		);
 		queueMicrotask(() => {
 			refreshCatalog(nextFilters, includeCategories);
@@ -202,6 +226,7 @@ export function useStorefrontCatalog({
 			search: deferredSearchQuery.trim(),
 		};
 
+		setCatalogError(null);
 		setIsLoadingMore(true);
 
 		void fetchCatalogPage(nextOffset, nextFilters, false)
@@ -224,14 +249,24 @@ export function useStorefrontCatalog({
 				setHasMoreProducts(catalogPage.hasMore);
 				setNextOffset(catalogPage.nextOffset);
 			})
-			.finally(() => {
-				if (requestId === requestSequenceRef.current) {
-					setIsLoadingMore(false);
+			.catch((error) => {
+				if (requestId !== requestSequenceRef.current) {
+					return;
 				}
+
+				if (isAbortError(error)) {
+					return;
+				}
+
+				setCatalogError(CATALOG_REFRESH_ERROR_MESSAGE);
+			})
+			.finally(() => {
+				setIsLoadingMore(false);
 			});
 	}
 
 	return {
+		catalogError,
 		searchQuery,
 		selectedCategoryValue,
 		selectedCouponValue,

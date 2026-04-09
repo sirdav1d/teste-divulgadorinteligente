@@ -30,6 +30,7 @@ export default function StorefrontCatalogClient({
 }: StorefrontCatalogClientProps) {
 	const { cartQuantities, incrementCart, decrementCart } = useCart();
 	const {
+		catalogError,
 		searchQuery,
 		selectedCategoryValue,
 		selectedCouponValue,
@@ -85,6 +86,13 @@ export default function StorefrontCatalogClient({
 			</div>
 
 			<section className='mt-6 space-y-6 xl:mt-8 xl:space-y-8'>
+				{catalogError ? (
+					<p
+						role='alert'
+						className='rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive'>
+						{catalogError}
+					</p>
+				) : null}
 				{shouldShowGrid ? (
 					<ProductGrid
 						cartQuantities={cartQuantities}
